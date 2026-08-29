@@ -299,7 +299,8 @@ export default function WorkerDashboardPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const refreshData = useCallback((userId: string) => {
+  const refreshData = useCallback(async (userId: string) => {
+    await dataService.syncCloud();
     const prof = dataService.findWorkerByUserId(userId);
     if (prof) setWorkerProfile(prof);
 

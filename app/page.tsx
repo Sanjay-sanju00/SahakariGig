@@ -56,15 +56,18 @@ function SignInModal({ onClose, onSuccess, onSwitchToSignUp }: SignInModalProps)
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      const user = dataService.login(email.trim().toLowerCase(), password.trim());
+    try {
+      const user = await dataService.login(email.trim().toLowerCase(), password.trim());
       if (!user) {
         setError('Invalid email or password. Please check your credentials.');
         setLoading(false);
         return;
       }
       onSuccess(user);
-    }, 250);
+    } catch {
+      setError('Failed to authenticate. Please try again.');
+      setLoading(false);
+    }
   }
 
   return (
@@ -193,7 +196,8 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      await dataService.syncCloud();
       const existing = dataService.findUser(email.trim().toLowerCase());
       if (existing) {
         setError('An account with this email already exists.');
@@ -223,9 +227,12 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
         kycDocName: kycDocName || 'artisan_id_card.pdf',
       } : undefined;
 
-      const registered = dataService.register(newUser, workerPayload);
+      const registered = await dataService.register(newUser, workerPayload);
       onSuccess(registered);
-    }, 300);
+    } catch {
+      setError('Failed to create account. Please try again.');
+      setLoading(false);
+    }
   }
 
   return (
@@ -774,7 +781,8 @@ export default function CustomerPortal() {
   const [activeTab, setActiveTab] = useState<'services' | 'bookings'>('services');
 
   // Real-time synchronization
-  const refreshData = useCallback((user: User | null) => {
+  const refreshData = useCallback(async (user: User | null) => {
+    await dataService.syncCloud();
     const svcs = dataService.getServices();
     setServices(svcs || []);
 

@@ -57,7 +57,8 @@ export default function AdminDashboardPage() {
   }, [router]);
 
   // Load Administrative Data
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback(async () => {
+    await dataService.syncCloud();
     const soc = dataService.getSociety();
     setSociety(soc);
 

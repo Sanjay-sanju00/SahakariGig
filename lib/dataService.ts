@@ -482,19 +482,27 @@ export const dataService = {
     return users.find((u) => u.email.toLowerCase() === email.toLowerCase());
   },
 
-  login(email: string, pass: string): User | null {
+  async login(email: string, pass: string): Promise<User | null> {
+    await syncFromCloud();
     const user = this.findUser(email);
     if (user && user.password === pass) return user;
     return null;
   },
 
-  register(user: User, workerData?: { trade: string; skills: string[]; bio: string; kycDocName?: string }): User {
+  async register(user: User, workerData?: { trade: string; skills: string[]; bio: string; kycDocName?: string }): Promise<User> {
+    await syncFromCloud();
     const users = this.getUsers();
-    users.unshift(user);
+    const existingIdx = users.findIndex((u) => u.email.toLowerCase() === user.email.toLowerCase());
+    if (existingIdx !== -1) {
+      users[existingIdx] = user;
+    } else {
+      users.unshift(user);
+    }
     setItem(LS_KEY_USERS, users);
 
     if (user.role === 'WORKER') {
       const workers = this.getWorkers();
+      const existingWorkerIdx = workers.findIndex((w) => w.userId === user.id);
       const newWorker: WorkerProfile = {
         id: `wp-${Date.now()}`,
         userId: user.id,
@@ -517,11 +525,15 @@ export const dataService = {
         rating: 5.0,
         ratingsCount: 0,
       };
-      workers.unshift(newWorker);
+      if (existingWorkerIdx !== -1) {
+        workers[existingWorkerIdx] = newWorker;
+      } else {
+        workers.unshift(newWorker);
+      }
       setItem(LS_KEY_WORKERS, workers);
     }
 
-    pushToCloud();
+    await pushToCloud();
     return user;
   },
 
