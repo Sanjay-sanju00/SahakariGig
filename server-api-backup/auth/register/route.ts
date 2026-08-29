@@ -91,6 +91,13 @@ export async function POST(request: NextRequest) {
         cashEarnings: 0,
         completedJobs: 0,
         rating: 5.0,
+        qualityRating: 5.0,
+        behaviorRating: 5.0,
+        fairPricingPercentage: 100,
+        fairPricingVotes: 1,
+        totalReviewsCount: 1,
+        outstandingDues: 0,
+        accountStatus: 'ACTIVE',
       });
     }
 

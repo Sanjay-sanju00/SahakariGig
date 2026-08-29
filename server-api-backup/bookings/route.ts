@@ -69,7 +69,11 @@ export async function POST(request: NextRequest) {
       status: 'PENDING_ACCEPTANCE',
       scheduledDate,
       address,
-      totalAmount: Number(totalAmount),
+      basePrice: Number(totalAmount),
+      extraCost: 0,
+      subtotalAmount: Number(totalAmount),
+      platformFee: Math.round(Number(totalAmount) * 0.05),
+      totalAmount: Number(totalAmount) + Math.round(Number(totalAmount) * 0.05),
       paymentStatus: 'PENDING',
       createdAt: new Date().toISOString(),
     };

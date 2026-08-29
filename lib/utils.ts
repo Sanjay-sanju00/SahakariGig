@@ -47,7 +47,9 @@ export function getBadgeClass(status: string): string {
     COMPLETED:                 'badge text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800',
     CANCELLED:                 'badge text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-800',
 
-    // KYC and payment
+    // KYC, Account Status and payment
+    ACTIVE:                    'badge text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800',
+    SUSPENDED_UNPAID_DUES:     'badge text-rose-800 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800',
     VERIFIED:     'badge text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800',
     PENDING:      'badge text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800',
     REJECTED:     'badge text-red-800 dark:text-red-300 bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-800',
@@ -68,6 +70,8 @@ export function getStatusReadableLabel(status: string): string {
     COMPLETED_PAID_CASH:       'Service Completed & Settled (Cash)',
     COMPLETED:                 'Service Completed & Settled',
     CANCELLED:                 'Cancelled / Declined',
+    ACTIVE:                    'Active & Available',
+    SUSPENDED_UNPAID_DUES:     'Suspended (Unpaid Dues)',
   };
   return map[status] ?? status.replace(/_/g, ' ');
 }

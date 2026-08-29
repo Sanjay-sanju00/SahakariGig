@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -42,6 +42,7 @@ export default function AdminLoginPage() {
         password === ADMIN_CREDENTIALS.password
       ) {
         sessionStorage.setItem('pacs_admin_auth', 'true');
+        localStorage.setItem('sahakar_admin_auth', JSON.stringify({ role: 'ADMIN', email: ADMIN_CREDENTIALS.email, name: 'PACS Society Administrator' }));
         router.push('/admin/dashboard');
       } else {
         setError('Invalid administrative credentials. Access restricted.');
@@ -51,35 +52,35 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4 relative">
+    <div className="min-h-screen bg-zinc-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4 relative">
       {/* Top Right Theme Toggle */}
       <div className="absolute top-4 right-4 z-20">
         <ThemeToggle />
       </div>
       {/* Brand Header */}
       <div className="flex items-center gap-2.5 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/20">
+        <div className="w-10 h-10 rounded-xl bg-zinc-950 flex items-center justify-center text-white shadow-md shadow-blue-600/20">
           <Leaf className="w-5 h-5" />
         </div>
         <div>
-          <span className="font-black text-slate-900 dark:text-slate-100 text-2xl leading-none block">
+          <span className="font-black text-zinc-900 dark:text-zinc-50 text-2xl leading-none block">
             SahakarGig
           </span>
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
             PACS Administration Portal
           </span>
         </div>
       </div>
 
       {/* Login Card */}
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950 text-zinc-700 dark:text-zinc-300 flex items-center justify-center">
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="font-bold text-slate-900 dark:text-slate-100 text-lg">Administrative Console Login</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">District Cooperative Federation Security Desk</p>
+            <h1 className="font-bold text-zinc-900 dark:text-zinc-50 text-lg">Administrative Console Login</h1>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">District Cooperative Federation Security Desk</p>
           </div>
         </div>
 
@@ -113,7 +114,7 @@ export default function AdminLoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-slate-600 dark:hover:text-slate-300"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -135,7 +136,7 @@ export default function AdminLoginPage() {
             {loading ? (
               <span className="inline-flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Authenticating Session…
+                Authenticating Session...
               </span>
             ) : (
               <span className="inline-flex items-center gap-2">
@@ -148,15 +149,16 @@ export default function AdminLoginPage() {
         <div className="divider my-6" />
 
         <div className="text-center">
-          <a href="/" className="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-            ← Return to SahakarGig Public Marketplace
+          <a href="/" className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-blue-400 transition-colors">
+            ← Return to SahakarGig Public Marketplace
           </a>
         </div>
       </div>
 
-      <div className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">
+      <div className="mt-8 text-center text-xs text-zinc-400 dark:text-zinc-500">
         PACS Society Administration System · High Security Isolated Environment
       </div>
     </div>
   );
 }
+

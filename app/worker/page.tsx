@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import {
   Leaf, LogOut, Wrench, BadgeCheck, CheckCircle, XCircle,
   CalendarDays, MapPin, Star, ToggleLeft, ToggleRight,
-  CircleCheck, Shield, TrendingUp, AlertCircle, Loader2, User,
-  FileText, Clock, Banknote, CreditCard, Coins, Check, Phone,
-  MessageSquare, MessageCircle, Copy, ExternalLink, Navigation,
-  AlertTriangle, Sparkles
+  Shield, AlertCircle, Loader2, User, Clock, Banknote,
+  CreditCard, Coins, Check, Phone, MessageSquare, Copy,
+  Navigation, AlertTriangle, FileText, Send, DollarSign,
+  Award, ThumbsUp
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import dataService, { Booking, WorkerProfile, User as UserType, Society } from '@/lib/dataService';
-import { formatCurrency, formatDateTime, getBadgeClass, getStatusReadableLabel } from '@/lib/utils';
+import { formatCurrency, formatDate, formatDateTime, getBadgeClass, getStatusReadableLabel } from '@/lib/utils';
 
 function getSessionUser(): UserType | null {
   if (typeof window === 'undefined') return null;
@@ -24,7 +24,7 @@ function getSessionUser(): UserType | null {
   }
 }
 
-// ─── Customer Contact Section Component ─────────────────────────────────────
+// --- Customer Contact Section Component -------------------------------------
 interface CustomerContactCardProps {
   booking: Booking;
   workerName: string;
@@ -48,19 +48,19 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-900/80 rounded-xl p-3.5 border border-slate-200/90 dark:border-slate-800 space-y-2.5">
+    <div className="bg-zinc-50 dark:bg-zinc-900/60 rounded-xl p-3.5 border border-zinc-200 dark:border-zinc-700/60 space-y-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-xs">
+          <div className="w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center font-bold text-xs">
             <User className="w-3.5 h-3.5" />
           </div>
           <div>
-            <div className="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5">
+            <div className="font-bold text-zinc-900 dark:text-zinc-50 text-xs flex items-center gap-1.5">
               <span>{booking.customerName}</span>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">(Resident Customer)</span>
+              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-normal">(Resident Customer)</span>
             </div>
-            <div className="text-[11px] text-slate-600 dark:text-slate-400 flex items-center gap-1 font-mono">
-              <Phone className="w-3 h-3 text-slate-400" />
+            <div className="text-[11px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1 font-mono">
+              <Phone className="w-3 h-3 text-zinc-400" />
               <span>{phone ? `+91 ${phone}` : 'Contact on file'}</span>
             </div>
           </div>
@@ -70,10 +70,10 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
         <button
           type="button"
           onClick={() => handleCopy(`${booking.customerName} - ${phone} - ${booking.address}`)}
-          className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-md flex items-center gap-1 transition-colors"
+          className="text-[10px] font-semibold text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/60 px-2 py-1 rounded-md flex items-center gap-1 transition-colors"
           title="Copy customer contact info"
         >
-          {copied ? <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3 h-3" />}
+          {copied ? <Check className="w-3 h-3 text-zinc-900 dark:text-zinc-50" /> : <Copy className="w-3 h-3" />}
           <span>{copied ? 'Copied!' : 'Copy Info'}</span>
         </button>
       </div>
@@ -84,7 +84,7 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
         {cleanDigits ? (
           <a
             href={`tel:${cleanDigits}`}
-            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-blue-600/20"
+            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-zinc-950 hover:bg-zinc-800 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-zinc-900/20"
           >
             <Phone className="w-3.5 h-3.5" />
             <span>Call Now</span>
@@ -93,7 +93,7 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
           <button
             type="button"
             disabled
-            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-slate-300 dark:bg-slate-800 text-slate-500 font-bold text-xs rounded-lg cursor-not-allowed opacity-70"
+            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-zinc-200 dark:bg-zinc-800 text-zinc-500 font-bold text-xs rounded-lg cursor-not-allowed opacity-70"
           >
             <Phone className="w-3.5 h-3.5" />
             <span>No Phone</span>
@@ -106,7 +106,7 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-emerald-600/20"
+            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-zinc-900/20"
           >
             <MessageSquare className="w-3.5 h-3.5" />
             <span>WhatsApp</span>
@@ -115,7 +115,7 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
           <button
             type="button"
             disabled
-            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-slate-300 dark:bg-slate-800 text-slate-500 font-bold text-xs rounded-lg cursor-not-allowed opacity-70"
+            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-zinc-200 dark:bg-zinc-800 text-zinc-500 font-bold text-xs rounded-lg cursor-not-allowed opacity-70"
           >
             <MessageSquare className="w-3.5 h-3.5" />
             <span>No WhatsApp</span>
@@ -127,9 +127,9 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
           href={mapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-slate-700 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm"
+          className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm"
         >
-          <Navigation className="w-3.5 h-3.5 text-blue-300" />
+          <Navigation className="w-3.5 h-3.5 text-zinc-300" />
           <span>GPS Map</span>
         </a>
       </div>
@@ -137,7 +137,176 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
   );
 }
 
-// ─── Subscription Pass Modal ────────────────────────────────────────────────
+// --- Dynamic Invoice Generation Modal ---------------------------------------
+interface DynamicInvoiceModalProps {
+  booking: Booking;
+  onClose: () => void;
+  onSubmitInvoice: (extraCost: number, reason: string) => void;
+}
+
+function DynamicInvoiceModal({ booking, onClose, onSubmitInvoice }: DynamicInvoiceModalProps) {
+  const base = booking.basePrice || 150;
+  const [extraCostInput, setExtraCostInput] = useState<string>('0');
+  const [reasonInput, setReasonInput] = useState<string>('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const extraCostNum = Math.max(0, parseFloat(extraCostInput) || 0);
+  const subtotal = base + extraCostNum;
+  const platformFee = Math.round(subtotal * 0.05);
+  const totalCustomerBill = subtotal + platformFee;
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (extraCostNum > 0 && !reasonInput.trim()) {
+      setError('Please provide a reason / scope breakdown for the extra charges.');
+      return;
+    }
+    setError('');
+    setSubmitting(true);
+
+    setTimeout(() => {
+      onSubmitInvoice(extraCostNum, reasonInput.trim());
+      setSubmitting(false);
+    }, 300);
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-zinc-950 text-white flex items-center justify-center shadow-md">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">
+                Complete Job & Generate Invoice
+              </h3>
+              <p className="text-xs text-zinc-500">
+                Customer: {booking.customerName} · {booking.serviceName}
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400">
+            <XCircle className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Read-Only Base Price */}
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 block">
+                Standard Base Diagnostic Rate (PACS Fixed)
+              </span>
+              <span className="text-[11px] text-zinc-400">Fixed rate approved for this trade</span>
+            </div>
+            <span className="text-base font-black text-zinc-900 dark:text-zinc-50">
+              {formatCurrency(base)}
+            </span>
+          </div>
+
+          {/* Extra Labor / Material Cost Input */}
+          <div>
+            <label className="form-label text-xs">
+              Extra Labor / Material Cost (₹)
+            </label>
+            <input
+              type="number"
+              min="0"
+              className="form-input text-sm font-bold"
+              placeholder="0"
+              value={extraCostInput}
+              onChange={(e) => setExtraCostInput(e.target.value)}
+            />
+            <span className="text-[10px] text-zinc-400 mt-0.5 block">
+              Leave 0 if only standard service was performed with no replacement parts.
+            </span>
+          </div>
+
+          {/* Reason / Work Scope */}
+          <div>
+            <label className="form-label text-xs">
+              Reason / Work Scope for Extra Cost
+            </label>
+            <textarea
+              className="form-input text-xs"
+              rows={2}
+              placeholder="e.g. Replaced 3 modular switches, installed 5m copper wire, and cleaned drain trap..."
+              value={reasonInput}
+              onChange={(e) => setReasonInput(e.target.value)}
+            />
+          </div>
+
+          {/* Live Dynamic Invoice Breakdown Preview */}
+          <div className="p-4 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-2 text-xs">
+            <div className="font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5 pb-1 border-b border-zinc-100 dark:border-zinc-800/40">
+              <DollarSign className="w-4 h-4 text-zinc-700" />
+              Live Bill Summary Preview
+            </div>
+
+            <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
+              <span>Worker Base Rate:</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-50">{formatCurrency(base)}</span>
+            </div>
+
+            {extraCostNum > 0 && (
+              <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
+                <span>Extra Labor / Materials:</span>
+                <span className="font-semibold text-zinc-900 dark:text-zinc-50">+{formatCurrency(extraCostNum)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between font-bold text-zinc-900 dark:text-zinc-50 pt-1 border-t border-zinc-100 dark:border-zinc-800/40">
+              <span>Your Take-Home Subtotal:</span>
+              <span className="text-zinc-900 dark:text-zinc-50">{formatCurrency(subtotal)} (100%)</span>
+            </div>
+
+            <div className="flex justify-between text-zinc-700 dark:text-zinc-300">
+              <span>PACS Platform Fee (5% on Customer):</span>
+              <span>+{formatCurrency(platformFee)}</span>
+            </div>
+
+            <div className="h-px bg-zinc-200 dark:bg-zinc-700 my-1" />
+
+            <div className="flex justify-between font-black text-sm text-zinc-900 dark:text-zinc-50">
+              <span>Total Customer Payable:</span>
+              <span className="text-zinc-700 dark:text-zinc-300 text-base">{formatCurrency(totalCustomerBill)}</span>
+            </div>
+          </div>
+
+          {error && (
+            <div className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 text-zinc-700 dark:text-zinc-300 text-xs font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-secondary text-xs py-2 px-4 font-bold"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn-primary text-xs py-2 px-5 font-bold shadow-md flex items-center gap-1.5"
+            >
+              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              <span>Submit Final Bill & Request Settlement</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// --- Subscription Pass Modal ------------------------------------------------
 interface SubscriptionModalProps {
   worker: WorkerProfile;
   monthlyRate: number;
@@ -161,7 +330,7 @@ function SubscriptionModal({ worker, monthlyRate, yearlyRate, onClose, onSubscri
       if (updated) {
         onSubscribed(updated);
       } else {
-        setError('Failed to activate pass.');
+        setError('Failed to activate pass. Please try again.');
       }
       setLoading(false);
     }, 300);
@@ -172,25 +341,25 @@ function SubscriptionModal({ worker, monthlyRate, yearlyRate, onClose, onSubscri
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-box p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center shadow-md shadow-blue-600/20">
+            <div className="w-9 h-9 rounded-xl bg-zinc-950 text-white flex items-center justify-center shadow-md">
               <Coins className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
-                {isExpired ? 'Subscribe / Renew Artisan Pass' : 'Upgrade Membership Pass'}
+              <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">
+                {isExpired ? 'Subscribe / Renew Artisan Pass' : 'Extend / Upgrade Membership Pass'}
               </h3>
-              <p className="text-xs text-slate-500">Cooperative Society Zero-Commission Access</p>
+              <p className="text-xs text-zinc-500">Cooperative Society Zero-Commission Access</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400">
             <XCircle className="w-5 h-5" />
           </button>
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 text-xs font-semibold">
+          <div className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 text-zinc-700 dark:text-zinc-300 text-xs font-semibold">
             {error}
           </div>
         )}
@@ -200,87 +369,61 @@ function SubscriptionModal({ worker, monthlyRate, yearlyRate, onClose, onSubscri
           {/* Monthly Option */}
           <div
             onClick={() => setSelectedPlan('MONTHLY')}
-            className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between ${
+            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
               selectedPlan === 'MONTHLY'
-                ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 shadow-sm'
-                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                ? 'border-zinc-900 bg-zinc-50 dark:bg-zinc-900/60 shadow-sm'
+                : 'border-zinc-200 dark:border-zinc-700/60 hover:bg-zinc-50 dark:hover:bg-zinc-800'
             }`}
           >
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">
-                  Monthly Pass
-                </span>
-                {selectedPlan === 'MONTHLY' && (
-                  <CheckCircle className="w-4 h-4 text-blue-600" />
-                )}
-              </div>
-              <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">
-                {formatCurrency(monthlyRate)}
-                <span className="text-xs font-normal text-slate-500"> /mo</span>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Valid for 30 days of unlimited 0% commission gigs.
-              </p>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                Monthly Pass
+              </span>
+              <span className="w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-bold border-zinc-500">
+                {selectedPlan === 'MONTHLY' ? '' : ''}
+              </span>
             </div>
+            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50">
+              {formatCurrency(monthlyRate)} <span className="text-xs font-normal text-zinc-500">/mo</span>
+            </div>
+            <div className="text-[11px] text-zinc-500 mt-1">30 Days Unlimited Dispatching</div>
           </div>
 
           {/* Yearly Option */}
           <div
             onClick={() => setSelectedPlan('YEARLY')}
-            className={`p-4 rounded-xl border-2 transition-all cursor-pointer flex flex-col justify-between relative ${
+            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
               selectedPlan === 'YEARLY'
-                ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/40 shadow-sm'
-                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                ? 'border-zinc-700 bg-zinc-50 dark:bg-zinc-900/60 shadow-sm'
+                : 'border-zinc-200 dark:border-zinc-700/60 hover:bg-zinc-50 dark:hover:bg-zinc-800'
             }`}
           >
-            <span className="absolute -top-2.5 right-3 bg-emerald-600 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
-              Best Value
-            </span>
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-                  Annual Pass
-                </span>
-                {selectedPlan === 'YEARLY' && (
-                  <CheckCircle className="w-4 h-4 text-emerald-600" />
-                )}
-              </div>
-              <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">
-                {formatCurrency(yearlyRate)}
-                <span className="text-xs font-normal text-slate-500"> /yr</span>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Valid for 365 days + PACS healthcare pool priority.
-              </p>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                Yearly Pass (Best Value)
+              </span>
+              <span className="w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-bold border-zinc-500">
+                {selectedPlan === 'YEARLY' ? '' : ''}
+              </span>
             </div>
+            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50">
+              {formatCurrency(yearlyRate)} <span className="text-xs font-normal text-zinc-500">/yr</span>
+            </div>
+            <div className="text-[11px] text-zinc-500 mt-1">365 Days Guaranteed Access</div>
           </div>
         </div>
 
-        {/* Benefits Checklist */}
-        <div className="p-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2 text-xs">
-          <div className="font-bold text-slate-900 dark:text-slate-200">Membership Pass Privileges:</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600 dark:text-slate-300 text-[11px]">
-            <div className="flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-emerald-600" />
-              <span>0% Platform Commission</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Direct Customer Call & WhatsApp</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Instant Job Dispatching Alerts</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-emerald-600" />
-              <span>100% Payouts to Your Wallet</span>
-            </div>
+        {/* Benefits Note */}
+        <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs text-zinc-600 dark:text-zinc-400 space-y-1">
+          <div className="font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-zinc-700" /> Cooperative Welfare Protection
           </div>
+          <p className="text-[11px] leading-relaxed">
+            100% of membership pass fees go into the Primary Cooperative Society Welfare Reserve for artisan healthcare and emergency funds.
+          </p>
         </div>
 
-        {/* Action Button */}
+        {/* Modal Actions */}
         <div className="pt-2 flex items-center justify-end gap-2.5">
           <button
             type="button"
@@ -292,7 +435,7 @@ function SubscriptionModal({ worker, monthlyRate, yearlyRate, onClose, onSubscri
           <button
             type="button"
             onClick={handleSubscribe}
-            className="btn-primary text-xs py-2.5 px-6 font-black shadow-md flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            className="btn-primary text-xs py-2.5 px-6 font-bold shadow-md flex items-center gap-2"
             disabled={loading}
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Coins className="w-4 h-4" />}
@@ -304,7 +447,7 @@ function SubscriptionModal({ worker, monthlyRate, yearlyRate, onClose, onSubscri
   );
 }
 
-// ─── Main Worker Dashboard Page ────────────────────────────────────────────
+// --- Main Worker Dashboard Page --------------------------------------------
 export default function WorkerDashboardPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
@@ -313,8 +456,10 @@ export default function WorkerDashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [invoicingBooking, setInvoicingBooking] = useState<Booking | null>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [settlingDues, setSettlingDues] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -367,14 +512,8 @@ export default function WorkerDashboardPage() {
   async function handleToggleAvailability() {
     if (!currentUser || !workerProfile) return;
 
-    // Check if worker has an active subscription
-    const isSubscribed = Boolean(
-      workerProfile.passValidUntil && new Date(workerProfile.passValidUntil).getTime() > Date.now()
-    );
-
-    if (!isSubscribed) {
-      showToast('⚠️ Active membership pass required to go online. Please purchase or renew your subscription.');
-      setShowSubscriptionModal(true);
+    if (workerProfile.accountStatus === 'SUSPENDED_UNPAID_DUES' || (workerProfile.outstandingDues || 0) >= 300) {
+      showToast('Account temporarily paused due to unpaid PACS dues (₹' + workerProfile.outstandingDues + '). Please clear dues to go online.');
       return;
     }
 
@@ -384,21 +523,31 @@ export default function WorkerDashboardPage() {
     });
     if (updated) {
       setWorkerProfile(updated);
-      showToast(nextState ? '🟢 You are now Online and accepting jobs.' : '⛔ You are now Offline.');
+      showToast(nextState ? 'Status updated: Online and accepting jobs.' : 'Status updated: Offline.');
     }
   }
 
-  // Step 1: Accept Request -> IN_PROGRESS (No payment requested yet)
+  // 1-Click Clear Outstanding Dues
+  async function handlePayOutstandingDues() {
+    if (!currentUser || !workerProfile) return;
+    setSettlingDues(true);
+    setTimeout(() => {
+      const updated = dataService.payWorkerDues(currentUser.id);
+      if (updated) {
+        setWorkerProfile(updated);
+        showToast('PACS Commission Dues cleared successfully! Your account is now fully Active.');
+      }
+      setSettlingDues(false);
+      refreshData(currentUser.id);
+    }, 400);
+  }
+
+  // Step 1: Accept Request -> IN_PROGRESS
   async function handleAcceptJob(bookingId: string) {
     if (!currentUser || !workerProfile) return;
 
-    const isSubscribed = Boolean(
-      workerProfile.passValidUntil && new Date(workerProfile.passValidUntil).getTime() > Date.now()
-    );
-
-    if (!isSubscribed) {
-      showToast('⚠️ Active membership pass required to accept jobs. Please subscribe or renew your pass.');
-      setShowSubscriptionModal(true);
+    if (workerProfile.accountStatus === 'SUSPENDED_UNPAID_DUES' || (workerProfile.outstandingDues || 0) >= 300) {
+      showToast('Account paused due to unpaid dues. Please clear outstanding PACS dues to accept jobs.');
       return;
     }
 
@@ -411,69 +560,54 @@ export default function WorkerDashboardPage() {
         acceptedAt: new Date().toISOString(),
       });
       setActionLoadingId(null);
-      showToast('✓ Job accepted! You can now contact the resident and begin service.');
+      showToast('Job accepted! You can now contact the resident and begin service.');
       refreshData(currentUser.id);
     }, 300);
   }
 
-  // Decline Request
-  async function handleDeclineJob(bookingId: string) {
-    if (!currentUser) return;
-    setActionLoadingId(bookingId);
-    setTimeout(() => {
-      dataService.updateBooking(bookingId, {
-        status: 'CANCELLED',
-      });
-      setActionLoadingId(null);
-      showToast('✓ Job request declined.');
-      refreshData(currentUser.id);
-    }, 300);
+  // Step 2: Dynamic Invoice Submission -> AWAITING_PAYMENT
+  function handleGenerateInvoice(booking: Booking) {
+    setInvoicingBooking(booking);
   }
 
-  // Step 2: Complete Physical Job & Request Settlement -> AWAITING_PAYMENT
-  async function handleRequestSettlement(bookingId: string) {
-    if (!currentUser) return;
-    setActionLoadingId(bookingId);
-    setTimeout(() => {
-      dataService.updateBooking(bookingId, {
-        status: 'AWAITING_PAYMENT',
-        settlementRequestedAt: new Date().toISOString(),
-      });
-      setActionLoadingId(null);
-      showToast('✓ Job Completed! Settlement requested from resident.');
-      refreshData(currentUser.id);
-    }, 300);
+  function handleInvoiceSubmitted(extraCost: number, reason: string) {
+    if (!invoicingBooking || !currentUser) return;
+    dataService.submitInvoice(invoicingBooking.id, extraCost, reason);
+    setInvoicingBooking(null);
+    showToast('Final bill submitted! Payment requested from resident.');
+    refreshData(currentUser.id);
   }
 
-  // Step 3 Option B: Worker Collects Cash On-Site -> COMPLETED_PAID_CASH
-  async function handleCollectCash(bookingId: string) {
+  // Step 3 Option B: Worker Collects Cash On-Site -> COMPLETED_PAID_CASH + Add 5% to dues
+  async function handleCollectCash(booking: Booking) {
     if (!currentUser) return;
-    if (!confirm('Confirm that you have physically collected cash from the customer on site?')) return;
-    setActionLoadingId(bookingId);
+    const subtotal = booking.subtotalAmount || booking.totalAmount;
+    const fee = booking.platformFee || Math.round(subtotal * 0.05);
+
+    if (!confirm(`Confirm that you have physically collected ${formatCurrency(booking.totalAmount)} cash from the customer?\n\nThe 5% PACS platform fee (${formatCurrency(fee)}) will be added to your outstanding dues ledger.`)) return;
+
+    setActionLoadingId(booking.id);
     setTimeout(() => {
-      dataService.updateBooking(bookingId, {
-        status: 'COMPLETED_PAID_CASH',
-        paymentStatus: 'PAID_CASH',
-        paymentMethod: 'CASH',
-        paidAt: new Date().toISOString(),
-        completedAt: new Date().toISOString(),
-      });
+      dataService.settleCashPayment(booking.id);
       setActionLoadingId(null);
-      showToast('✓ Cash Settlement Recorded! 100% credited to your wallet.');
+      showToast(`Cash collected! 5% commission (${formatCurrency(fee)}) logged to your PACS dues.`);
       refreshData(currentUser.id);
     }, 300);
   }
 
   if (loading || !currentUser) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-zinc-700" />
       </div>
     );
   }
 
+  const outstandingDues = workerProfile?.outstandingDues || 0;
+  const isSuspended = workerProfile?.accountStatus === 'SUSPENDED_UNPAID_DUES' || outstandingDues >= 300;
+
   // Task Category Filtering
-  const incomingRequests = bookings.filter((b) => b.status === 'PENDING_ACCEPTANCE');
+  const incomingRequests = bookings.filter((b) => b.status === 'PENDING_ACCEPTANCE' && (!b.workerId || b.workerId === currentUser.id));
   const inProgressTasks = bookings.filter((b) => b.status === 'IN_PROGRESS' && b.workerId === currentUser.id);
   const awaitingPaymentTasks = bookings.filter((b) => b.status === 'AWAITING_PAYMENT' && b.workerId === currentUser.id);
   const completedJobsList = bookings.filter(
@@ -484,28 +618,20 @@ export default function WorkerDashboardPage() {
       b.workerId === currentUser.id
   );
 
-  // Membership Pass Subscription Calculations
-  const isSubscribed = Boolean(
-    workerProfile?.passValidUntil && new Date(workerProfile.passValidUntil).getTime() > Date.now()
-  );
-  const daysLeft = isSubscribed && workerProfile?.passValidUntil
-    ? Math.ceil((new Date(workerProfile.passValidUntil).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-    : 0;
-
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* ─── Top Header (Strict Worker Context) ────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+    <div className="min-h-screen flex flex-col bg-zinc-50">
+      {/* --- Top Header -------------------------------------------------------- */}
+      <header className="nav-sticky">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/20">
+            <div className="w-9 h-9 rounded-xl bg-zinc-950 flex items-center justify-center text-white shadow-md shadow-zinc-900/20">
               <Wrench className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-black text-slate-900 text-xl tracking-tight leading-none block">
+              <span className="font-black text-zinc-900 dark:text-zinc-50 text-xl tracking-tight leading-none block">
                 SahakarGig
               </span>
-              <span className="text-[11px] font-medium text-slate-500 leading-none">
+              <span className="text-[11px] font-medium text-zinc-500 leading-none">
                 Artisan Partner Dashboard
               </span>
             </div>
@@ -513,9 +639,9 @@ export default function WorkerDashboardPage() {
 
           <div className="flex items-center gap-3">
             <div className="hidden sm:block text-right">
-              <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{currentUser.name}</div>
-              <div className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">
-                {workerProfile?.trade || currentUser.trade || 'Artisan Partner'}
+              <div className="text-xs font-bold text-zinc-900 dark:text-zinc-50">{currentUser.name}</div>
+              <div className="text-[10px] text-zinc-700 dark:text-zinc-300 font-semibold">
+                {workerProfile?.trade || 'Artisan Partner'}
               </div>
             </div>
             <button
@@ -530,223 +656,279 @@ export default function WorkerDashboardPage() {
         </div>
       </header>
 
-      {/* ─── Main Content ───────────────────────────────────────────────────── */}
+      {/* --- Main Content ----------------------------------------------------- */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 space-y-6">
         {/* Toast Alert Message */}
         {toastMessage && (
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200 text-xs font-semibold flex items-center gap-2 shadow-sm animate-fadein">
-            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+          <div className="p-4 rounded-xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 text-zinc-700 dark:text-zinc-300 text-xs font-semibold flex items-center gap-2 shadow-sm animate-fadein">
+            <CheckCircle className="w-4 h-4 text-zinc-700 shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
 
-        {/* ── Warning Banner if Membership Pass Inactive / Expired ── */}
-        {!isSubscribed && (
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-red-500/10 border-2 border-amber-400 dark:border-amber-600/60 shadow-md space-y-3 animate-fadein">
+        {/* -- HIGH PRIORITY RED SUSPENSION BANNER -- */}
+        {isSuspended && (
+          <div className="p-5 rounded-2xl bg-red-500/10 border-2 border-red-500 dark:border-red-600/80 shadow-md space-y-3 animate-fadein">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-start gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-amber-500/30">
+                <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-red-600/30">
                   <AlertTriangle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-black text-slate-900 dark:text-slate-100 text-base flex items-center gap-2">
-                    <span>Membership Pass Inactive or Expired</span>
-                    <span className="text-[10px] uppercase font-black bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-800">
-                      Dispatching Offline
+                  <h3 className="font-black text-zinc-900 dark:text-zinc-50 text-base flex items-center gap-2">
+                    <span>Account Temporarily Paused (Unpaid PACS Dues)</span>
+                    <span className="text-[10px] uppercase font-black bg-red-100 dark:bg-red-950 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-800">
+                      Suspended
                     </span>
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 max-w-xl leading-relaxed">
-                    Take a subscription or renew your pass to accept customer repair requests, turn on your online status, and receive 100% take-home payouts with 0% commission.
+                  <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 max-w-xl leading-relaxed">
+                    Your accumulated PACS cash commission dues have reached <strong>{formatCurrency(outstandingDues)}</strong> (threshold: ₹300). Your profile is currently hidden from resident search and job acceptance is paused.
                   </p>
                 </div>
               </div>
 
               <button
-                onClick={() => setShowSubscriptionModal(true)}
-                className="btn-primary py-2.5 px-5 text-xs font-black shadow-lg bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white whitespace-nowrap flex items-center gap-2 self-start sm:self-auto"
+                onClick={handlePayOutstandingDues}
+                disabled={settlingDues}
+                className="btn-primary py-2.5 px-5 text-xs font-black shadow-lg bg-red-600 hover:bg-red-700 text-white whitespace-nowrap flex items-center gap-2 self-start sm:self-auto"
               >
-                <Coins className="w-4 h-4" />
-                <span>Subscribe / Renew Pass (from {formatCurrency(society?.monthlyPassRate || 69)})</span>
+                {settlingDues ? <Loader2 className="w-4 h-4 animate-spin" /> : <Coins className="w-4 h-4" />}
+                <span>Pay Outstanding Dues ({formatCurrency(outstandingDues)})</span>
               </button>
             </div>
           </div>
         )}
 
-        {/* Cooperative Membership Card */}
+        {/* -- Cooperative Profile Banner -- */}
         <div className="membership-banner flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1.5 ${
-                isSubscribed
-                  ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
+                !isSuspended
+                  ? 'bg-zinc-100 text-zinc-300 border border-zinc-500/30'
                   : 'bg-red-400/20 text-red-200 border border-red-400/30'
               }`}>
-                {isSubscribed ? <BadgeCheck className="w-3.5 h-3.5 text-emerald-300" /> : <AlertTriangle className="w-3.5 h-3.5 text-red-300" />}
-                {isSubscribed
-                  ? `${workerProfile?.subscriptionPlan || 'Monthly'} Pass Active (${daysLeft}d remaining)`
-                  : 'Pass Inactive / Expired'}
+                {!isSuspended ? <BadgeCheck className="w-3.5 h-3.5 text-zinc-300" /> : <AlertTriangle className="w-3.5 h-3.5 text-zinc-400" />}
+                {!isSuspended ? 'Account Active & Verified' : 'Account Paused (Unpaid Dues)'}
               </span>
 
+              {outstandingDues > 0 && !isSuspended && (
+                <span className="text-[11px] font-bold text-amber-200 bg-amber-900/40 border border-amber-400/30 px-2 py-0.5 rounded-full">
+                  Outstanding Dues: {formatCurrency(outstandingDues)} / ₹300 limit
+                </span>
+              )}
+
               <button
+                type="button"
                 onClick={() => setShowSubscriptionModal(true)}
-                className="text-[11px] font-black underline hover:text-white text-blue-200 transition-colors"
+                className="text-[11px] font-bold underline hover:text-white text-zinc-400 transition-colors"
               >
-                {isSubscribed ? 'Extend / Upgrade Pass' : 'Activate Pass'}
+                Manage / Upgrade Membership Pass
               </button>
             </div>
 
             <h2 className="text-2xl font-black text-white">{currentUser.name}</h2>
-            <div className="text-xs text-blue-100 mt-1">
-              Trade: <strong className="text-white">{workerProfile?.trade || currentUser.trade || 'General Maintenance'}</strong> · {workerProfile?.localSociety || 'Primary Cooperative Services Society'}
+            <div className="text-xs text-zinc-400 mt-1">
+              Trade: <strong className="text-white">{workerProfile?.trade || 'General Maintenance'}</strong> · {workerProfile?.localSociety || 'Primary Cooperative Services Society'}
             </div>
           </div>
 
           {/* Availability Toggle */}
           <div className="bg-white/10 backdrop-blur-md p-3.5 rounded-xl border border-white/20 flex items-center gap-3">
             <div>
-              <div className="text-[11px] text-blue-200 font-medium">Job Dispatching Status</div>
-              <div className="text-xs font-bold text-white">
-                {isSubscribed
-                  ? (workerProfile?.isAvailable ? '🟢 Online (Accepting Jobs)' : '⛔ Offline')
-                  : '🔒 Locked Offline (Pass Required)'}
+              <div className="text-[11px] text-zinc-400 font-medium">Job Dispatching Status</div>
+              <div className="text-xs font-bold text-white flex items-center gap-1.5 mt-0.5">
+                <span className={`w-2 h-2 rounded-full ${workerProfile?.isAvailable && !isSuspended ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
+                <span>
+                  {!isSuspended
+                    ? (workerProfile?.isAvailable ? 'Online (Accepting Jobs)' : 'Offline')
+                    : 'Locked Offline (Clear Dues)'}
+                </span>
               </div>
             </div>
             <button
               onClick={handleToggleAvailability}
               className="transition-transform active:scale-95"
-              title={isSubscribed ? 'Toggle Availability' : 'Active Pass Required to Go Online'}
+              title={!isSuspended ? 'Toggle Availability' : 'Clear Dues to Go Online'}
             >
-              {workerProfile?.isAvailable && isSubscribed ? (
-                <ToggleRight className="w-9 h-9 text-emerald-400" />
+              {workerProfile?.isAvailable && !isSuspended ? (
+                <ToggleRight className="w-9 h-9 text-zinc-300" />
               ) : (
-                <ToggleLeft className="w-9 h-9 text-slate-300" />
+                <ToggleLeft className="w-9 h-9 text-zinc-300" />
               )}
             </button>
           </div>
         </div>
 
-        {/* Real-time Earnings Breakdown & KPI Metrics */}
+        {/* -- Real-time Earnings & 3-Factor Trust Metrics -- */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Total Wallet */}
-          <div className="kpi-card border-l-4 border-l-emerald-600 bg-white dark:bg-slate-900">
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1">Take-Home Earnings Wallet</div>
-            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+          <div className="kpi-card border-l-4 border-l-emerald-600 bg-white dark:bg-zinc-900">
+            <div className="text-xs text-zinc-500 font-semibold mb-1">Take-Home Earnings Wallet</div>
+            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50">
               {formatCurrency(workerProfile?.totalEarnings || 0)}
             </div>
-            <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-bold mt-0.5">100% Direct Payouts (0% Cut)</div>
+            <div className="text-[11px] text-zinc-600 dark:text-zinc-300 font-bold mt-0.5">100% Direct Payouts</div>
           </div>
 
-          {/* Digital vs Cash Settlements Split */}
-          <div className="kpi-card border-l-4 border-l-blue-600 bg-white dark:bg-slate-900">
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1">Settlement Channels Breakdown</div>
-            <div className="flex items-center justify-between text-xs mt-1">
-              <span className="text-blue-700 dark:text-blue-300 font-bold flex items-center gap-1">
-                <CreditCard className="w-3.5 h-3.5" /> Digital: {formatCurrency(workerProfile?.digitalEarnings || 0)}
-              </span>
-              <span className="text-emerald-700 dark:text-emerald-300 font-bold flex items-center gap-1">
-                <Banknote className="w-3.5 h-3.5" /> Cash: {formatCurrency(workerProfile?.cashEarnings || 0)}
-              </span>
-            </div>
-            <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Directly received & verified</div>
-          </div>
-
-          {/* Completed Services */}
-          <div className="kpi-card border-l-4 border-l-amber-500 bg-white dark:bg-slate-900">
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1">Delivered Services & Rating</div>
+          {/* Outstanding PACS Dues Card */}
+          <div className={`kpi-card border-l-4 ${outstandingDues >= 300 ? 'border-l-red-600 bg-red-50/20' : 'border-l-amber-500 bg-white'} dark:bg-zinc-900`}>
+            <div className="text-xs text-zinc-500 font-semibold mb-1">Outstanding PACS Commission Dues</div>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-black text-slate-900 dark:text-slate-100">{workerProfile?.completedJobs || 0}</div>
-              <div className="text-base font-black text-amber-500 flex items-center gap-1">
-                {workerProfile?.rating ? workerProfile.rating.toFixed(1) : '5.0'} <Star className="w-4 h-4 fill-amber-500" />
+              <div className={`text-2xl font-black ${outstandingDues >= 300 ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-50'}`}>
+                {formatCurrency(outstandingDues)}
+              </div>
+              {outstandingDues > 0 && (
+                <button
+                  onClick={handlePayOutstandingDues}
+                  disabled={settlingDues}
+                  className="btn-primary text-[10px] py-1 px-2.5 font-bold"
+                >
+                  Pay Dues
+                </button>
+              )}
+            </div>
+            <div className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">
+              {outstandingDues >= 300 ? ' Limit exceeded (Suspended)' : `Threshold: ₹300 limit`}
+            </div>
+          </div>
+
+          {/* 3-Factor Quality Scores Card */}
+          <div className="kpi-card border-l-4 border-l-blue-600 bg-white dark:bg-zinc-900">
+            <div className="text-xs text-zinc-500 font-semibold mb-1">3-Factor Performance Ratings</div>
+            <div className="space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span className="text-zinc-600 dark:text-zinc-400"> Work Quality:</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-50">{(workerProfile?.qualityRating || 4.9).toFixed(1)} / 5</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-600 dark:text-zinc-400"> Behavior:</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-50">{(workerProfile?.behaviorRating || 4.8).toFixed(1)} / 5</span>
               </div>
             </div>
-            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Verified resident ratings</div>
           </div>
 
-          {/* KYC Status */}
-          <div className="kpi-card border-l-4 border-l-violet-600 bg-white dark:bg-slate-900">
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1">KYC Committee Verification</div>
-            <div className="text-base font-bold mt-1">
-              <span className={getBadgeClass(workerProfile?.kycStatus || 'PENDING')}>
-                {workerProfile?.kycStatus || 'PENDING'}
-              </span>
+          {/* Pricing Fairness & Overcharge Rating Card */}
+          <div className="kpi-card border-l-4 border-l-violet-600 bg-white dark:bg-zinc-900">
+            <div className="text-xs text-zinc-500 font-semibold mb-1">Pricing Fairness Score</div>
+            <div className="text-2xl font-black text-violet-600 dark:text-violet-400">
+              {(workerProfile?.pricingRating || 4.9).toFixed(1)} <span className="text-sm font-bold text-zinc-400">/ 5.0</span>
             </div>
-            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 truncate max-w-[140px]">
-              ID: {workerProfile?.kycDocName || 'identity_card.pdf'}
+            <div className="text-[11px] text-zinc-900 dark:text-zinc-50 font-bold mt-0.5">
+              {workerProfile?.fairPricingPercentage || 98}% Fair Value Rating
             </div>
           </div>
         </div>
 
-        {/* ── Section 1: Active In-Progress Tasks (Physical Work Underway) ── */}
+        {/* -- 1. Incoming Job Requests -- */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-zinc-950" />
+              <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">Incoming Job Requests</h3>
+              <span className="text-xs text-zinc-400">({incomingRequests.length})</span>
+            </div>
+          </div>
+
+          {isSuspended ? (
+            <div className="card p-8 text-center space-y-2 border-zinc-200 dark:border-zinc-700/60 bg-red-50/30 dark:bg-red-950/20">
+              <AlertTriangle className="w-8 h-8 text-red-600 mx-auto" />
+              <div className="font-bold text-red-900 dark:text-zinc-400">Incoming Requests Paused</div>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
+                Please clear your outstanding PACS dues ({formatCurrency(outstandingDues)}) to resume receiving and accepting customer requests.
+              </p>
+              <button
+                onClick={handlePayOutstandingDues}
+                disabled={settlingDues}
+                className="btn-primary text-xs py-2 px-4 font-bold bg-red-600 hover:bg-red-700"
+              >
+                Clear Dues & Reactivate
+              </button>
+            </div>
+          ) : incomingRequests.length === 0 ? (
+            <div className="card p-8 text-center space-y-2">
+              <Clock className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mx-auto" />
+              <div className="font-bold text-zinc-700 dark:text-zinc-300">No pending job requests</div>
+              <p className="text-xs text-zinc-400">Ensure your status is Online to receive new requests.</p>
+            </div>
+          ) : (
+            incomingRequests.map((bk) => (
+              <div key={bk.id} className="card p-5 space-y-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="font-bold text-zinc-900 dark:text-zinc-50 text-base">{bk.serviceName}</div>
+                    <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1.5">
+                      <CalendarDays className="w-3.5 h-3.5" /> Scheduled: {formatDateTime(bk.scheduledDate)}
+                    </div>
+                    <div className="text-xs text-zinc-500 flex items-center gap-1.5 mt-0.5">
+                      <MapPin className="w-3.5 h-3.5" /> Location: {bk.address}
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-[10px] uppercase font-bold text-zinc-400 block">Base Rate</span>
+                    <span className="text-base font-black text-zinc-700 dark:text-zinc-300">{formatCurrency(bk.basePrice || 150)}</span>
+                  </div>
+                </div>
+
+                {bk.problemDescription && (
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs">
+                    <span className="font-bold text-zinc-500 uppercase text-[10px] block mb-0.5">Reported Issue</span>
+                    <p className="text-zinc-800 dark:text-zinc-200">&quot;{bk.problemDescription}&quot;</p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
+                  <button
+                    onClick={() => handleAcceptJob(bk.id)}
+                    disabled={actionLoadingId === bk.id}
+                    className="btn-primary text-xs py-2 px-5 font-bold shadow-sm"
+                  >
+                    {actionLoadingId === bk.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                    Accept Job
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </section>
+
+        {/* -- 2. Active Tasks In Progress -- */}
         <section className="space-y-3">
           <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg">Active Tasks In Progress</h3>
-            <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 text-xs font-bold">
-              {inProgressTasks.length}
-            </span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">Active Tasks In Progress</h3>
+            <span className="text-xs text-zinc-400">({inProgressTasks.length})</span>
           </div>
 
           {inProgressTasks.length === 0 ? (
-            <div className="card p-6 text-center text-xs text-slate-400 dark:text-slate-500">
-              No tasks currently in progress. Accept incoming dispatches below to start work.
+            <div className="card p-8 text-center space-y-2">
+              <CheckCircle className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mx-auto" />
+              <div className="font-bold text-zinc-700 dark:text-zinc-300">No active tasks in progress</div>
+              <p className="text-xs text-zinc-400">Accept an incoming request to start working.</p>
             </div>
           ) : (
-            inProgressTasks.map((task) => (
-              <div key={task.id} className="card p-5 border-l-4 border-l-blue-600 space-y-4 shadow-sm bg-blue-50/20 dark:bg-blue-950/20">
+            inProgressTasks.map((bk) => (
+              <div key={bk.id} className="card p-5 space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-black text-slate-900 dark:text-slate-100 text-base">{task.serviceName}</span>
-                      <span className="badge text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800">
-                        Physical Service In Progress
-                      </span>
-                    </div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" /> Location: <strong className="text-slate-900 dark:text-slate-100">{task.address}</strong>
-                    </div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                      <CalendarDays className="w-3.5 h-3.5 text-slate-400" /> Scheduled: {formatDateTime(task.scheduledDate)}
+                  <div>
+                    <div className="font-bold text-zinc-900 dark:text-zinc-50 text-base">{bk.serviceName}</div>
+                    <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1.5">
+                      <CalendarDays className="w-3.5 h-3.5" /> Scheduled: {formatDateTime(bk.scheduledDate)}
                     </div>
                   </div>
-
-                  <div className="text-right">
-                    <div className="text-xl font-black text-blue-600 dark:text-blue-400">{formatCurrency(task.totalAmount)}</div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Post-Service Settlement</div>
-                  </div>
+                  <span className="badge bg-zinc-100 text-zinc-700 border-zinc-200">In Progress</span>
                 </div>
 
-                {/* ── Problem Description Reported by Customer ── */}
-                {task.problemDescription && (
-                  <div className="p-3.5 bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl text-xs space-y-1">
-                    <div className="text-[11px] font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wider">
-                      <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                      Reported Issue by Resident
-                    </div>
-                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
-                      &quot;{task.problemDescription}&quot;
-                    </p>
-                  </div>
-                )}
+                <CustomerContactCard booking={bk} workerName={currentUser.name} />
 
-                {/* ── Customer Contact & Location Section ── */}
-                <CustomerContactCard booking={task} workerName={currentUser.name} />
-
-                {/* Step 2 Primary Action */}
-                <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    Once the physical repair is finished, click below to request customer settlement.
-                  </span>
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
                   <button
-                    onClick={() => handleRequestSettlement(task.id)}
-                    className="btn-primary text-xs py-2 px-5 font-bold shadow-md flex items-center gap-1.5 whitespace-nowrap"
-                    disabled={actionLoadingId === task.id}
+                    onClick={() => handleGenerateInvoice(bk)}
+                    className="btn-primary text-xs py-2 px-5 font-bold shadow-md bg-zinc-800 hover:bg-zinc-700 text-white flex items-center gap-1.5"
                   >
-                    {actionLoadingId === task.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <CheckCircle className="w-4 h-4" />
-                    )}
-                    Complete Job & Request Settlement
+                    <FileText className="w-4 h-4" />
+                    Complete Job & Generate Invoice
                   </button>
                 </div>
               </div>
@@ -754,222 +936,215 @@ export default function WorkerDashboardPage() {
           )}
         </section>
 
-        {/* ── Section 2: Awaiting Settlement (Dual Settlement Options) ── */}
-        {awaitingPaymentTasks.length > 0 && (
-          <section className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-violet-600 animate-pulse" />
-              <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg">Awaiting Settlement (Work Done)</h3>
-              <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-950/60 text-violet-800 dark:text-violet-300 text-xs font-bold">
-                {awaitingPaymentTasks.length}
-              </span>
-            </div>
-
-            {awaitingPaymentTasks.map((task) => (
-              <div key={task.id} className="card p-5 border-l-4 border-l-violet-600 bg-violet-50/20 dark:bg-violet-950/20 space-y-4 shadow-sm">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 dark:text-slate-100 text-base">{task.serviceName}</span>
-                      <span className="badge text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/60 border-violet-200 dark:border-violet-800">
-                        Work Completed • Settlement Requested
-                      </span>
-                    </div>
-                    <div className="text-xs text-violet-700 dark:text-violet-300 font-medium mt-1">
-                      💡 Customer has been prompted to pay {formatCurrency(task.totalAmount)} online in their app. If they handed you cash instead, click the button below.
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    <div className="text-xl font-black text-violet-700 dark:text-violet-300">{formatCurrency(task.totalAmount)}</div>
-                    <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">100% Payout</div>
-                  </div>
-                </div>
-
-                {/* ── Problem Description Reported by Customer ── */}
-                {task.problemDescription && (
-                  <div className="p-3.5 bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl text-xs space-y-1">
-                    <div className="text-[11px] font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wider">
-                      <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                      Reported Issue by Resident
-                    </div>
-                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
-                      &quot;{task.problemDescription}&quot;
-                    </p>
-                  </div>
-                )}
-
-                {/* ── Customer Contact & Location Section ── */}
-                <CustomerContactCard booking={task} workerName={currentUser.name} />
-
-                {/* Option B: Worker Confirms Cash Received on Site */}
-                <div className="pt-3 border-t border-violet-100 dark:border-violet-900/60 flex items-center justify-between">
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    Option B: Received physical cash from customer?
-                  </span>
-                  <button
-                    onClick={() => handleCollectCash(task.id)}
-                    className="btn-success text-xs py-2 px-4 font-bold shadow-sm flex items-center gap-1.5"
-                    disabled={actionLoadingId === task.id}
-                  >
-                    {actionLoadingId === task.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Banknote className="w-4 h-4" />
-                    )}
-                    Collected Cash from Customer ({formatCurrency(task.totalAmount)})
-                  </button>
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {/* ── Section 3: Incoming Requests (PENDING_ACCEPTANCE) ── */}
+        {/* -- 3. Awaiting Payment Tasks (Cash / Digital Settlement) -- */}
         <section className="space-y-3">
           <div className="flex items-center gap-2">
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg">Incoming Requests (Zero Pre-Payment)</h3>
-            <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 text-xs font-bold">
-              {incomingRequests.length}
-            </span>
+            <span className="w-2.5 h-2.5 rounded-full bg-violet-600" />
+            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">Awaiting Payment Settlement</h3>
+            <span className="text-xs text-zinc-400">({awaitingPaymentTasks.length})</span>
           </div>
 
-          {incomingRequests.length === 0 ? (
-            <div className="card p-6 text-center text-xs text-slate-400 dark:text-slate-500">
-              No new incoming dispatches currently. Keep your status Online to receive household alerts.
+          {awaitingPaymentTasks.length === 0 ? (
+            <div className="card p-8 text-center space-y-2">
+              <Coins className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mx-auto" />
+              <div className="font-bold text-zinc-700 dark:text-zinc-300">No jobs awaiting payment</div>
+              <p className="text-xs text-zinc-400">Completed jobs will appear here for settlement.</p>
             </div>
           ) : (
-            incomingRequests.map((req) => (
-              <div key={req.id} className="card p-5 border-l-4 border-l-blue-600 space-y-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 dark:text-slate-100 text-base">{req.serviceName}</span>
-                      <span className="badge text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800">Pending Acceptance</span>
+            awaitingPaymentTasks.map((bk) => {
+              const base = bk.basePrice || 150;
+              const extra = bk.extraCost || 0;
+              const subtotal = bk.subtotalAmount || (base + extra);
+              const fee = bk.platformFee || Math.round(subtotal * 0.05);
+              const total = bk.totalAmount || (subtotal + fee);
+
+              return (
+                <div key={bk.id} className="card p-5 space-y-4 border-l-4 border-l-violet-600">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="font-bold text-zinc-900 dark:text-zinc-50 text-base">{bk.serviceName}</div>
+                      <div className="text-xs text-zinc-500 mt-1">Customer: {bk.customerName} ({bk.customerPhone})</div>
                     </div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                      Resident: <strong className="text-slate-900 dark:text-slate-100">{req.customerName}</strong>
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" /> Location: {req.address}
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
-                      <CalendarDays className="w-3.5 h-3.5 text-slate-400" /> Scheduled: {formatDateTime(req.scheduledDate)}
+
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase font-bold text-zinc-400 block">Total Customer Bill</span>
+                      <span className="text-base font-black text-zinc-700 dark:text-zinc-300">{formatCurrency(total)}</span>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <div className="text-lg font-black text-blue-600 dark:text-blue-400">{formatCurrency(req.totalAmount)}</div>
-                    <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">100% Payout</div>
-                  </div>
-                </div>
-
-                {/* ── Problem Description Reported by Customer ── */}
-                {req.problemDescription && (
-                  <div className="p-3.5 bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl text-xs space-y-1">
-                    <div className="text-[11px] font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wider">
-                      <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                      Reported Issue by Resident
+                  {/* Invoice Summary */}
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs space-y-1">
+                    <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
+                      <span>Base Diagnostic Rate:</span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-50">{formatCurrency(base)}</span>
                     </div>
-                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
-                      &quot;{req.problemDescription}&quot;
-                    </p>
+                    {extra > 0 && (
+                      <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
+                        <span>Extra Labor / Materials ({bk.extraCostReason}):</span>
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-50">+{formatCurrency(extra)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-bold text-zinc-900 dark:text-zinc-50 pt-1 border-t border-zinc-200 dark:border-zinc-700/60">
+                      <span>Your Direct Take-Home:</span>
+                      <span className="text-zinc-900 dark:text-zinc-50">{formatCurrency(subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-zinc-600 dark:text-zinc-400 text-[11px]">
+                      <span>PACS Commission (5%):</span>
+                      <span>+{formatCurrency(fee)}</span>
+                    </div>
                   </div>
-                )}
 
-                {/* ── Customer Contact & Location Section for Incoming Request ── */}
-                <CustomerContactCard booking={req} workerName={currentUser.name} />
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
+                    <div className="text-xs text-zinc-500">
+                      Resident can pay online, or you can record collected cash:
+                    </div>
 
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                  <span className="text-xs text-slate-500 dark:text-slate-400">Accept to start the job without requiring upfront charges.</span>
-                  <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleDeclineJob(req.id)}
-                      className="btn-danger text-xs py-1.5 px-3 font-bold"
-                      disabled={actionLoadingId === req.id}
+                      onClick={() => handleCollectCash(bk)}
+                      disabled={actionLoadingId === bk.id}
+                      className="btn-primary text-xs py-2 px-5 font-bold shadow-md bg-zinc-800 hover:bg-zinc-700 text-white flex items-center gap-1.5"
                     >
-                      <XCircle className="w-3.5 h-3.5" /> Decline
-                    </button>
-                    <button
-                      onClick={() => handleAcceptJob(req.id)}
-                      className="btn-success text-xs py-1.5 px-4 font-bold shadow-sm"
-                      disabled={actionLoadingId === req.id}
-                    >
-                      <CheckCircle className="w-3.5 h-3.5" /> Accept Job
+                      {actionLoadingId === bk.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Banknote className="w-4 h-4" />}
+                      <span>Collected Cash ({formatCurrency(total)})</span>
                     </button>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </section>
 
-        {/* ── Section 4: Completed Jobs History ── */}
-        {completedJobsList.length > 0 && (
-          <section className="space-y-3">
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-lg">Settled Services & Customer Reviews</h3>
+        {/* -- 4. Completed Service History -- */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
+            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">Completed Job History</h3>
+            <span className="text-xs text-zinc-400">({completedJobsList.length})</span>
+          </div>
+
+          {completedJobsList.length === 0 ? (
+            <div className="card p-8 text-center space-y-2">
+              <CalendarDays className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mx-auto" />
+              <div className="font-bold text-zinc-700 dark:text-zinc-300">No completed jobs yet</div>
+            </div>
+          ) : (
             <div className="space-y-3">
-              {completedJobsList.map((job) => (
-                <div key={job.id} className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              {completedJobsList.map((bk) => (
+                <div key={bk.id} className="card p-4 flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">{job.serviceName}</span>
-                      <span className="badge text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800">
-                        {job.status === 'COMPLETED_PAID_DIGITALLY' ? 'Settled Digitally' : 'Settled via Cash'}
-                      </span>
+                    <div className="font-bold text-zinc-900 dark:text-zinc-50 text-sm">{bk.serviceName}</div>
+                    <div className="text-xs text-zinc-500 mt-0.5">
+                      Customer: {bk.customerName} · Settled via {bk.paymentMethod || 'Direct'}
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      {job.customerName} · {job.address} · {formatDateTime(job.scheduledDate)}
-                    </div>
-                    {job.reviewComment && (
-                      <div className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/60 p-2 rounded-lg mt-2 border border-slate-100 dark:border-slate-800 flex items-center gap-1.5">
-                        <span className="text-amber-500 font-bold">{job.reviewRating} ★</span>
-                        <span className="italic">&quot;{job.reviewComment}&quot;</span>
-                      </div>
-                    )}
                   </div>
+
                   <div className="text-right">
-                    <div className="font-bold text-emerald-600 dark:text-emerald-400 text-base">+{formatCurrency(job.totalAmount)}</div>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider">
-                      {job.paymentMethod || 'Direct Payout'}
-                    </span>
+                    <div className="text-sm font-black text-zinc-900 dark:text-zinc-50">{formatCurrency(bk.subtotalAmount || bk.totalAmount)}</div>
+                    <div className="text-[10px] text-zinc-400">{formatDateTime(bk.completedAt || bk.createdAt)}</div>
                   </div>
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          )}
+        </section>
+
+        {/* -- 5. Resident Reviews & Feedback -- */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
+            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">Resident Reviews & Feedback</h3>
+            <span className="text-xs text-zinc-400">
+              ({dataService.getWorkerReviews(currentUser?.id || '').length})
+            </span>
+          </div>
+
+          {(() => {
+            const myReviews = dataService.getWorkerReviews(currentUser?.id || '');
+            if (myReviews.length === 0) {
+              return (
+                <div className="card p-6 text-center space-y-1 text-xs text-zinc-400">
+                  <p className="font-semibold text-zinc-600 dark:text-zinc-300">No written reviews yet</p>
+                  <p>Customer feedback and 3-factor ratings will appear here after job completion.</p>
+                </div>
+              );
+            }
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {myReviews.map((r) => (
+                  <div key={r.id} className="card p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-zinc-900 dark:text-zinc-50 text-xs">
+                        {r.customerName || 'Verified Resident'}
+                      </span>
+                      <span className="text-[10px] text-zinc-400">
+                        {r.reviewedAt ? formatDate(r.reviewedAt) : 'Recent'}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 text-[10px]">
+                      <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-700 dark:text-zinc-300 font-semibold">
+                        Skill: {r.qualityRating || 5}/5
+                      </span>
+                      <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-700 dark:text-zinc-300 font-semibold">
+                        Behavior: {r.behaviorRating || 5}/5
+                      </span>
+                      <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded font-bold">
+                        Pricing: {r.pricingRating || 5}/5
+                      </span>
+                    </div>
+
+                    {r.reviewComment ? (
+                      <p className="text-xs text-zinc-700 dark:text-zinc-300 italic pt-0.5 leading-relaxed">
+                        "{r.reviewComment}" 
+                      </p>
+                    ) : (
+                      <p className="text-xs text-zinc-400 italic">
+                        (Rating verified upon digital job completion)
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </section>
       </main>
 
-      {/* ── Membership Pass Subscription / Renewal Modal ── */}
+      {/* -- Dynamic Invoicing Modal -- */}
+      {invoicingBooking && (
+        <DynamicInvoiceModal
+          booking={invoicingBooking}
+          onClose={() => setInvoicingBooking(null)}
+          onSubmitInvoice={handleInvoiceSubmitted}
+        />
+      )}
+
+      {/* -- Subscription Pass Modal -- */}
       {showSubscriptionModal && workerProfile && (
         <SubscriptionModal
           worker={workerProfile}
           monthlyRate={society?.monthlyPassRate || 69}
           yearlyRate={society?.yearlyPassRate || 599}
           onClose={() => setShowSubscriptionModal(false)}
-          onSubscribed={(updatedWorker) => {
-            setWorkerProfile(updatedWorker);
+          onSubscribed={(updated) => {
+            setWorkerProfile(updated);
             setShowSubscriptionModal(false);
-            showToast('✓ Membership Pass Activated! You can now go online and accept job requests.');
+            showToast('Membership Pass activated successfully! You are now online with 0% commission.');
             if (currentUser) refreshData(currentUser.id);
           }}
         />
       )}
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-6 mt-12">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <div>
-            © 2026 <strong>SahakarGig</strong> — Primary Cooperative Services Platform.
-          </div>
-          <div>
-            <a href="/admin/login" className="text-blue-600 font-semibold hover:underline flex items-center gap-1">
-              <Shield className="w-3 h-3" /> PACS Administration Console
-            </a>
-          </div>
+      <footer className="bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800/60 py-4 mt-8">
+        <div className="max-w-6xl mx-auto px-4 text-center text-xs text-zinc-400">
+          SahakarGig Artisan Network · Primary Cooperative Services Society System
         </div>
       </footer>
     </div>
   );
 }
+
+
+

@@ -23,6 +23,7 @@ export interface Society {
   district: string;
   state: string;
   welfareFundBalance: number;
+  totalCommissionCollected: number; // 5% platform fee accumulated from digital & cash dues
   monthlyPassRate: number;
   yearlyPassRate: number;
 }
@@ -48,7 +49,7 @@ export interface WorkerProfile {
   name: string;
   email: string;
   phone?: string;
-  trade?: string;
+  trade: string;
   localSociety?: string;
   skills: string[];
   bio: string;
@@ -63,6 +64,16 @@ export interface WorkerProfile {
   completedJobs: number;
   rating: number;
   ratingsCount?: number;
+  // 3-Factor Quality & Trust Scores
+  qualityRating: number;          // 1.0 - 5.0 Work Quality score
+  behaviorRating: number;         // 1.0 - 5.0 Behavior, Punctuality & Respect score
+  pricingRating?: number;         // 1.0 - 5.0 Fair Pricing & Overcharge score (1=Highly Overcharged, 5=Highly Fair)
+  fairPricingPercentage: number;  // 0 - 100% Fair Pricing percentage
+  fairPricingVotes: number;       // Count of customers voting "Fair Pricing"
+  totalReviewsCount: number;      // Total review count
+  // Cash Commission Ledger & Automated Suspension
+  outstandingDues: number;        // Accumulated 5% platform dues from cash jobs (₹)
+  accountStatus: 'ACTIVE' | 'SUSPENDED_UNPAID_DUES';
 }
 
 export interface Service {
@@ -70,7 +81,8 @@ export interface Service {
   name: string;
   category: string;
   description: string;
-  price: number;
+  price: number; // Base rate for trade (₹)
+  basePrice?: number;
   icon: string;
   duration: string;
 }
@@ -89,7 +101,13 @@ export interface Booking {
   status: BookingStatus;
   scheduledDate: string;
   address: string;
-  totalAmount: number;
+  // Dynamic Invoice Breakdown
+  basePrice: number;              // Fixed trade base rate
+  extraCost?: number;             // Extra labor / material cost added by artisan
+  extraCostReason?: string;       // Reason / scope breakdown for extra cost
+  subtotalAmount?: number;        // Base + Extra
+  platformFee?: number;           // 5% PACS platform fee on customer
+  totalAmount: number;            // Subtotal + Platform Fee
   paymentStatus: PaymentStatus;
   paymentMethod?: 'DIGITAL' | 'CASH';
   createdAt: string;
@@ -97,6 +115,11 @@ export interface Booking {
   settlementRequestedAt?: string;
   paidAt?: string;
   completedAt?: string;
+  // 3-Factor Review Survey Submission
+  qualityRating?: number;         // 1 - 5 Work Quality
+  behaviorRating?: number;        // 1 - 5 Behavior & Punctuality
+  pricingRating?: number;         // 1 - 5 Pricing Fairness (1=Highly Overcharged, 5=Highly Fair)
+  fairPricingReport?: 'FAIR' | 'OVERCHARGED';
   reviewRating?: number;
   reviewComment?: string;
   reviewedAt?: string;
@@ -110,6 +133,7 @@ export const seedSociety: Society = {
   district: 'Central District Cluster',
   state: 'State Cooperative Federation',
   welfareFundBalance: 52400,
+  totalCommissionCollected: 14850,
   monthlyPassRate: 69,
   yearlyPassRate: 599,
 };
@@ -120,8 +144,9 @@ export const seedServices: Service[] = [
     name: 'Plumbing & Pipe Repair',
     category: 'Plumbing',
     description: 'Fix leaking taps, pipe washers, drainage clearance, and basic bathroom fixtures.',
-    price: 199,
-    icon: '🔧',
+    price: 200,
+    basePrice: 200,
+    icon: '',
     duration: '30–45 min',
   },
   {
@@ -129,8 +154,9 @@ export const seedServices: Service[] = [
     name: 'Electrical Socket & Switch Fix',
     category: 'Electrical',
     description: 'Repair faulty switches, MCB tripping issues, and household wiring checks.',
-    price: 299,
-    icon: '⚡',
+    price: 150,
+    basePrice: 150,
+    icon: '',
     duration: '45–60 min',
   },
   {
@@ -138,8 +164,9 @@ export const seedServices: Service[] = [
     name: 'Appliance Diagnosis & Repair',
     category: 'Appliance Fix',
     description: 'Inspection and diagnostics for washing machines, water coolers, pumps, and motors.',
-    price: 499,
-    icon: '🛠️',
+    price: 180,
+    basePrice: 180,
+    icon: '',
     duration: '60–90 min',
   },
   {
@@ -147,8 +174,9 @@ export const seedServices: Service[] = [
     name: 'Carpentry & Woodwork Fitting',
     category: 'Carpentry',
     description: 'Door hinges, handle fitting, shelf installation, and minor wooden repairs.',
-    price: 399,
-    icon: '🪚',
+    price: 250,
+    basePrice: 250,
+    icon: '',
     duration: '60–90 min',
   },
   {
@@ -156,8 +184,9 @@ export const seedServices: Service[] = [
     name: 'House Deep Cleaning & Sanitization',
     category: 'Cleaning',
     description: 'Intensive kitchen, bathroom, and household floor deep cleaning.',
-    price: 699,
-    icon: '🧹',
+    price: 300,
+    basePrice: 300,
+    icon: '',
     duration: '2–3 hrs',
   },
   {
@@ -165,8 +194,9 @@ export const seedServices: Service[] = [
     name: 'Ceiling Fan & Fixture Installation',
     category: 'Electrical',
     description: 'Complete ceiling/exhaust fan installation, regulator checks, and balancing.',
-    price: 349,
-    icon: '🔌',
+    price: 150,
+    basePrice: 150,
+    icon: '',
     duration: '45–60 min',
   },
 ];
@@ -244,8 +274,15 @@ const seedWorkers: WorkerProfile[] = [
     digitalEarnings: 28400,
     cashEarnings: 5800,
     completedJobs: 86,
-    rating: 4.8,
+    rating: 4.9,
     ratingsCount: 42,
+    qualityRating: 4.9,
+    behaviorRating: 4.8,
+    fairPricingPercentage: 97,
+    fairPricingVotes: 41,
+    totalReviewsCount: 42,
+    outstandingDues: 85,
+    accountStatus: 'ACTIVE',
   },
   {
     id: 'wp-2',
@@ -257,17 +294,24 @@ const seedWorkers: WorkerProfile[] = [
     localSociety: 'Primary Cooperative Services Society',
     skills: ['Tap Repair', 'Pipe Fitting', 'Drainage', 'Tank Cleaning'],
     bio: 'Experienced plumbing technician trained in residential water distribution.',
-    isAvailable: false,
-    kycStatus: 'PENDING',
+    isAvailable: true,
+    kycStatus: 'VERIFIED',
     kycDocName: 'kyc_kavita_sharma.jpg',
     subscriptionPlan: 'MONTHLY',
-    passValidUntil: new Date(Date.now() - 5 * 86400000).toISOString(),
+    passValidUntil: new Date(Date.now() + 20 * 86400000).toISOString(),
     totalEarnings: 21500,
     digitalEarnings: 17200,
     cashEarnings: 4300,
     completedJobs: 54,
-    rating: 4.6,
+    rating: 4.8,
     ratingsCount: 28,
+    qualityRating: 4.8,
+    behaviorRating: 4.9,
+    fairPricingPercentage: 96,
+    fairPricingVotes: 27,
+    totalReviewsCount: 28,
+    outstandingDues: 40,
+    accountStatus: 'ACTIVE',
   },
   {
     id: 'wp-3',
@@ -290,6 +334,13 @@ const seedWorkers: WorkerProfile[] = [
     completedJobs: 42,
     rating: 4.7,
     ratingsCount: 19,
+    qualityRating: 4.7,
+    behaviorRating: 4.8,
+    fairPricingPercentage: 95,
+    fairPricingVotes: 18,
+    totalReviewsCount: 19,
+    outstandingDues: 0,
+    accountStatus: 'ACTIVE',
   },
 ];
 
@@ -308,7 +359,11 @@ const seedBookings: Booking[] = [
     status: 'IN_PROGRESS',
     scheduledDate: '2026-08-28T10:00:00Z',
     address: 'Sector 4, Community Housing Block B',
-    totalAmount: 299,
+    basePrice: 150,
+    extraCost: 0,
+    subtotalAmount: 150,
+    platformFee: 8,
+    totalAmount: 158,
     paymentStatus: 'PENDING',
     createdAt: '2026-08-27T08:30:00Z',
     acceptedAt: '2026-08-27T08:35:00Z',
@@ -325,19 +380,120 @@ const seedBookings: Booking[] = [
     serviceName: 'Carpentry & Woodwork Fitting',
     problemDescription: 'Main wooden front door hinges loose and scraping against the floor tiles.',
     status: 'COMPLETED_PAID_DIGITALLY',
-    scheduledDate: '2026-08-25T09:00:00Z',
+    scheduledDate: '2026-08-26T14:00:00Z',
     address: 'Sector 4, Community Housing Block B',
-    totalAmount: 399,
+    basePrice: 250,
+    extraCost: 50,
+    extraCostReason: 'Replaced brass hinges and planed bottom door frame',
+    subtotalAmount: 300,
+    platformFee: 15,
+    totalAmount: 315,
     paymentStatus: 'PAID_DIGITAL',
     paymentMethod: 'DIGITAL',
-    createdAt: '2026-08-24T10:00:00Z',
-    acceptedAt: '2026-08-24T10:05:00Z',
-    settlementRequestedAt: '2026-08-24T11:00:00Z',
-    paidAt: '2026-08-24T11:05:00Z',
-    completedAt: '2026-08-24T11:05:00Z',
-    reviewRating: 5,
-    reviewComment: 'Excellent wood fitting work and very polite artisan!',
-    reviewedAt: '2026-08-24T12:00:00Z',
+    createdAt: '2026-08-25T11:00:00Z',
+    acceptedAt: '2026-08-25T11:10:00Z',
+    settlementRequestedAt: '2026-08-26T15:00:00Z',
+    paidAt: '2026-08-26T15:05:00Z',
+    completedAt: '2026-08-26T15:05:00Z',
+    qualityRating: 5,
+    behaviorRating: 5,
+    pricingRating: 5,
+    fairPricingReport: 'FAIR',
+    reviewRating: 5.0,
+    reviewComment: 'Prompt arrival and clean woodwork fitting. Fixed the scraping door smoothly without extra fuss!',
+    reviewedAt: '2026-08-26T15:30:00Z',
+  },
+  {
+    id: 'bk-rev-1',
+    customerId: 'usr-cust-2',
+    customerName: 'Sunita Kulkarni',
+    customerPhone: '9823099881',
+    customerAddress: 'Tower C-402, Green Meadows',
+    workerId: 'usr-wkr-1',
+    workerName: 'Suresh Patil',
+    serviceId: 'svc-2',
+    serviceName: 'Electrical Socket & Switch Fix',
+    status: 'COMPLETED_PAID_DIGITALLY',
+    scheduledDate: '2026-08-24T11:00:00Z',
+    address: 'Tower C-402, Green Meadows',
+    basePrice: 150,
+    extraCost: 30,
+    extraCostReason: 'Replaced heavy duty 16A AC socket',
+    subtotalAmount: 180,
+    platformFee: 9,
+    totalAmount: 189,
+    paymentStatus: 'PAID_DIGITAL',
+    paymentMethod: 'DIGITAL',
+    createdAt: '2026-08-24T09:00:00Z',
+    completedAt: '2026-08-24T12:00:00Z',
+    qualityRating: 5,
+    behaviorRating: 5,
+    pricingRating: 5,
+    fairPricingReport: 'FAIR',
+    reviewRating: 5.0,
+    reviewComment: 'Excellent electrical work! Replaced the faulty MCB switch and balanced the load cleanly. No extra hidden charges.',
+    reviewedAt: '2026-08-24T12:30:00Z',
+  },
+  {
+    id: 'bk-rev-2',
+    customerId: 'usr-cust-3',
+    customerName: 'Priya Nair',
+    customerPhone: '9823044556',
+    customerAddress: 'Villa 12, Cooperative Enclave',
+    workerId: 'usr-wkr-1',
+    workerName: 'Suresh Patil',
+    serviceId: 'svc-6',
+    serviceName: 'Ceiling Fan & Fixture Installation',
+    status: 'COMPLETED_PAID_DIGITALLY',
+    scheduledDate: '2026-08-22T16:00:00Z',
+    address: 'Villa 12, Cooperative Enclave',
+    basePrice: 150,
+    extraCost: 0,
+    subtotalAmount: 150,
+    platformFee: 8,
+    totalAmount: 158,
+    paymentStatus: 'PAID_DIGITAL',
+    paymentMethod: 'DIGITAL',
+    createdAt: '2026-08-22T14:00:00Z',
+    completedAt: '2026-08-22T17:15:00Z',
+    qualityRating: 5,
+    behaviorRating: 5,
+    pricingRating: 5,
+    fairPricingReport: 'FAIR',
+    reviewRating: 5.0,
+    reviewComment: 'Very punctual and courteous. Installed two BLDC ceiling fans neatly and tested all regulator speeds.',
+    reviewedAt: '2026-08-22T17:45:00Z',
+  },
+  {
+    id: 'bk-rev-3',
+    customerId: 'usr-cust-4',
+    customerName: 'Neha Gupta',
+    customerPhone: '9823077665',
+    customerAddress: 'Flat 301, Shanti Niketan',
+    workerId: 'usr-wkr-2',
+    workerName: 'Kavita Sharma',
+    serviceId: 'svc-1',
+    serviceName: 'Pipeline Leakage & Tap Fitting',
+    status: 'COMPLETED_PAID_DIGITALLY',
+    scheduledDate: '2026-08-25T10:00:00Z',
+    address: 'Flat 301, Shanti Niketan',
+    basePrice: 200,
+    extraCost: 40,
+    extraCostReason: 'Replaced Teflon washers and angle cock valve',
+    subtotalAmount: 240,
+    platformFee: 12,
+    totalAmount: 252,
+    paymentStatus: 'PAID_DIGITAL',
+    paymentMethod: 'DIGITAL',
+    createdAt: '2026-08-25T08:00:00Z',
+    completedAt: '2026-08-25T11:00:00Z',
+    qualityRating: 5,
+    behaviorRating: 5,
+    pricingRating: 5,
+    fairPricingReport: 'FAIR',
+    reviewRating: 5.0,
+    reviewComment: 'Fixed the leaking bathroom valve and cleared the drain trap without creating any mess. Super polite and honest billing!',
+    reviewedAt: '2026-08-25T11:30:00Z',
   },
 ];
 
@@ -347,31 +503,28 @@ const LS_KEY_WORKERS = 'sahakar_workers';
 const LS_KEY_SERVICES = 'sahakar_services';
 const LS_KEY_BOOKINGS = 'sahakar_bookings';
 const LS_KEY_SOCIETY = 'sahakar_society';
-const LS_KEY_CLOUD_DB = 'sahakar_cloud_db_url';
 
-const DEFAULT_CLOUD_DB = 'https://sahakarigig-default-rtdb.firebaseio.com';
-
-function getItem<T>(key: string, defaultVal: T): T {
-  if (typeof window === 'undefined') return defaultVal;
+function getItem<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback;
   try {
     const raw = localStorage.getItem(key);
-    if (!raw) return defaultVal;
+    if (!raw) return fallback;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(defaultVal) && Array.isArray(parsed) && parsed.length === 0 && defaultVal.length > 0) {
-      return defaultVal;
+    if (Array.isArray(parsed) && parsed.length === 0 && Array.isArray(fallback) && (fallback as unknown[]).length > 0) {
+      return fallback;
     }
     return parsed;
   } catch {
-    return defaultVal;
+    return fallback;
   }
 }
 
-function setItem<T>(key: string, val: T): void {
+function setItem<T>(key: string, value: T): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(key, JSON.stringify(val));
-  } catch (err) {
-    console.error('Failed to save to localStorage:', err);
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Silently ignore storage quota errors in demo mode
   }
 }
 
@@ -417,7 +570,6 @@ async function syncFromCloud(): Promise<void> {
         }
       }
     } else if (res.status === 404) {
-      // First time initialization: push seed data to Firestore
       await pushToCloud();
     }
   } catch {
@@ -448,54 +600,70 @@ async function pushToCloud(): Promise<void> {
       body: JSON.stringify(body),
     });
   } catch {
-    // Silent failover
+    // Cloud sync fails silently
   }
 }
 
-// Initialize background cloud sync on client boot
+// Background sync loop for real-time collaboration
 if (typeof window !== 'undefined') {
   syncFromCloud();
-  setInterval(syncFromCloud, 2000);
+  setInterval(() => {
+    syncFromCloud();
+  }, 2500);
 }
 
 // ─── Data Service Operations ──────────────────────────────────────────────────
 export const dataService = {
-  syncCloud: syncFromCloud,
-  pushCloud: pushToCloud,
+  async syncCloud(): Promise<void> {
+    await syncFromCloud();
+  },
 
   getSociety(): Society {
     return getItem<Society>(LS_KEY_SOCIETY, seedSociety);
   },
 
-  updateSocietyPassRates(monthly?: number, yearly?: number): Society {
-    const soc = this.getSociety();
-    if (monthly !== undefined && !isNaN(monthly) && monthly > 0) soc.monthlyPassRate = monthly;
-    if (yearly !== undefined && !isNaN(yearly) && yearly > 0) soc.yearlyPassRate = yearly;
-    setItem(LS_KEY_SOCIETY, soc);
+  updateSociety(update: Partial<Society>): Society {
+    const current = this.getSociety();
+    const updated = { ...current, ...update };
+    setItem(LS_KEY_SOCIETY, updated);
     pushToCloud();
-    return soc;
+    return updated;
   },
 
-  incrementWelfare(amount: number): void {
-    const soc = this.getSociety();
-    soc.welfareFundBalance += amount;
-    setItem(LS_KEY_SOCIETY, soc);
+  incrementWelfare(amount: number): Society {
+    const current = this.getSociety();
+    const updated = {
+      ...current,
+      welfareFundBalance: current.welfareFundBalance + amount,
+      totalCommissionCollected: (current.totalCommissionCollected || 0) + amount,
+    };
+    setItem(LS_KEY_SOCIETY, updated);
     pushToCloud();
+    return updated;
   },
 
   getServices(): Service[] {
     return getItem<Service[]>(LS_KEY_SERVICES, seedServices);
   },
 
-  updateServicePrice(id: string, price: number): Service[] {
+  getServiceById(id: string): Service | undefined {
+    return this.getServices().find((s) => s.id === id);
+  },
+
+  updateServiceBasePrice(serviceId: string, newBasePrice: number): Service | undefined {
     const services = this.getServices();
-    const idx = services.findIndex((s) => s.id === id);
+    const idx = services.findIndex((s) => s.id === serviceId);
     if (idx !== -1) {
-      services[idx].price = price;
+      services[idx] = {
+        ...services[idx],
+        price: newBasePrice,
+        basePrice: newBasePrice,
+      };
       setItem(LS_KEY_SERVICES, services);
       pushToCloud();
+      return services[idx];
     }
-    return services;
+    return undefined;
   },
 
   getUsers(): User[] {
@@ -508,14 +676,21 @@ export const dataService = {
   },
 
   async login(email: string, pass: string): Promise<User | null> {
-    await syncFromCloud();
+    try {
+      await Promise.race([syncFromCloud(), new Promise((resolve) => setTimeout(resolve, 1200))]);
+    } catch {}
     const user = this.findUser(email);
     if (user && user.password === pass) return user;
     return null;
   },
 
-  async register(user: User, workerData?: { trade: string; skills: string[]; bio: string; kycDocName?: string }): Promise<User> {
-    await syncFromCloud();
+  async register(
+    user: User,
+    workerData?: { trade: string; skills: string[]; bio: string; kycDocName?: string }
+  ): Promise<User> {
+    try {
+      await Promise.race([syncFromCloud(), new Promise((resolve) => setTimeout(resolve, 1200))]);
+    } catch {}
     const users = this.getUsers();
     const existingIdx = users.findIndex((u) => u.email.toLowerCase() === user.email.toLowerCase());
     if (existingIdx !== -1) {
@@ -533,7 +708,7 @@ export const dataService = {
         userId: user.id,
         name: user.name,
         email: user.email,
-        phone: user.phone || '9845012345',
+        phone: user.phone || '',
         trade: workerData?.trade || user.trade || 'General Maintenance',
         localSociety: user.localSociety || 'Primary Cooperative Services Society',
         skills: workerData?.skills && workerData.skills.length > 0 ? workerData.skills : ['Maintenance'],
@@ -548,7 +723,14 @@ export const dataService = {
         cashEarnings: 0,
         completedJobs: 0,
         rating: 5.0,
-        ratingsCount: 0,
+        ratingsCount: 1,
+        qualityRating: 5.0,
+        behaviorRating: 5.0,
+        fairPricingPercentage: 100,
+        fairPricingVotes: 1,
+        totalReviewsCount: 1,
+        outstandingDues: 0,
+        accountStatus: 'ACTIVE',
       };
       if (existingWorkerIdx !== -1) {
         workers[existingWorkerIdx] = newWorker;
@@ -558,7 +740,7 @@ export const dataService = {
       setItem(LS_KEY_WORKERS, workers);
     }
 
-    await pushToCloud();
+    pushToCloud();
     return user;
   },
 
@@ -618,6 +800,31 @@ export const dataService = {
     return undefined;
   },
 
+  payWorkerDues(userId: string): WorkerProfile | undefined {
+    const workers = this.getWorkers();
+    const idx = workers.findIndex((w) => w.userId === userId);
+    if (idx === -1) return undefined;
+
+    const currentDues = workers[idx].outstandingDues || 0;
+    workers[idx] = {
+      ...workers[idx],
+      outstandingDues: 0,
+      accountStatus: 'ACTIVE',
+      isAvailable: true,
+    };
+
+    setItem(LS_KEY_WORKERS, workers);
+    if (currentDues > 0) {
+      this.incrementWelfare(currentDues);
+    }
+    pushToCloud();
+    return workers[idx];
+  },
+
+  adminClearWorkerDues(userId: string): WorkerProfile | undefined {
+    return this.payWorkerDues(userId);
+  },
+
   getBookings(): Booking[] {
     return getItem<Booking[]>(LS_KEY_BOOKINGS, seedBookings);
   },
@@ -630,6 +837,186 @@ export const dataService = {
     return booking;
   },
 
+  submitInvoice(bookingId: string, extraCost: number, extraCostReason: string): Booking | undefined {
+    const bookings = this.getBookings();
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx === -1) return undefined;
+
+    const bk = bookings[idx];
+    const base = bk.basePrice || bk.totalAmount || 150;
+    const extra = Math.max(0, extraCost || 0);
+    const subtotal = base + extra;
+    const fee = Math.round(subtotal * 0.05);
+    const total = subtotal + fee;
+
+    const updated: Booking = {
+      ...bk,
+      extraCost: extra,
+      extraCostReason: extraCostReason.trim() || undefined,
+      subtotalAmount: subtotal,
+      platformFee: fee,
+      totalAmount: total,
+      status: 'AWAITING_PAYMENT',
+      settlementRequestedAt: new Date().toISOString(),
+    };
+
+    bookings[idx] = updated;
+    setItem(LS_KEY_BOOKINGS, bookings);
+    pushToCloud();
+    return updated;
+  },
+
+  settleDigitalPayment(bookingId: string): Booking | undefined {
+    const bookings = this.getBookings();
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx === -1) return undefined;
+
+    const bk = bookings[idx];
+    const subtotal = bk.subtotalAmount || (bk.totalAmount - (bk.platformFee || 0)) || bk.totalAmount;
+    const fee = bk.platformFee || Math.round(subtotal * 0.05);
+
+    const updated: Booking = {
+      ...bk,
+      status: 'COMPLETED_PAID_DIGITALLY',
+      paymentStatus: 'PAID_DIGITAL',
+      paymentMethod: 'DIGITAL',
+      paidAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+    };
+
+    bookings[idx] = updated;
+    setItem(LS_KEY_BOOKINGS, bookings);
+
+    if (updated.workerId) {
+      const worker = this.findWorkerByUserId(updated.workerId);
+      if (worker) {
+        this.updateWorker(updated.workerId, {
+          totalEarnings: worker.totalEarnings + subtotal,
+          digitalEarnings: worker.digitalEarnings + subtotal,
+          completedJobs: worker.completedJobs + 1,
+        });
+      }
+    }
+
+    this.incrementWelfare(fee);
+    pushToCloud();
+    return updated;
+  },
+
+  settleCashPayment(bookingId: string): Booking | undefined {
+    const bookings = this.getBookings();
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx === -1) return undefined;
+
+    const bk = bookings[idx];
+    const subtotal = bk.subtotalAmount || (bk.totalAmount - (bk.platformFee || 0)) || bk.totalAmount;
+    const fee = bk.platformFee || Math.round(subtotal * 0.05);
+    const total = bk.totalAmount;
+
+    const updated: Booking = {
+      ...bk,
+      status: 'COMPLETED_PAID_CASH',
+      paymentStatus: 'PAID_CASH',
+      paymentMethod: 'CASH',
+      paidAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+    };
+
+    bookings[idx] = updated;
+    setItem(LS_KEY_BOOKINGS, bookings);
+
+    if (updated.workerId) {
+      const worker = this.findWorkerByUserId(updated.workerId);
+      if (worker) {
+        const newDues = (worker.outstandingDues || 0) + fee;
+        const isSuspended = newDues >= 300;
+        this.updateWorker(updated.workerId, {
+          totalEarnings: worker.totalEarnings + subtotal,
+          cashEarnings: worker.cashEarnings + total,
+          completedJobs: worker.completedJobs + 1,
+          outstandingDues: newDues,
+          accountStatus: isSuspended ? 'SUSPENDED_UNPAID_DUES' : worker.accountStatus,
+          isAvailable: isSuspended ? false : worker.isAvailable,
+        });
+      }
+    }
+
+    pushToCloud();
+    return updated;
+  },
+
+  submitThreeFactorReview(
+    bookingId: string,
+    quality: number,
+    behavior: number,
+    pricingRating: number,
+    comment?: string
+  ): Booking | undefined {
+    const bookings = this.getBookings();
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx === -1) return undefined;
+
+    const bk = bookings[idx];
+    const avgScore = Math.round(((quality + behavior + pricingRating) / 3) * 10) / 10;
+    const fairPricingReport = pricingRating >= 3 ? 'FAIR' : 'OVERCHARGED';
+
+    const updated: Booking = {
+      ...bk,
+      qualityRating: quality,
+      behaviorRating: behavior,
+      pricingRating: pricingRating,
+      fairPricingReport,
+      reviewRating: avgScore,
+      reviewComment: comment?.trim() || undefined,
+      reviewedAt: new Date().toISOString(),
+    };
+
+    bookings[idx] = updated;
+    setItem(LS_KEY_BOOKINGS, bookings);
+
+    if (updated.workerId) {
+      const worker = this.findWorkerByUserId(updated.workerId);
+      if (worker) {
+        const count = worker.totalReviewsCount || 10;
+        const newQuality = Math.round((((worker.qualityRating || 4.9) * count + quality) / (count + 1)) * 10) / 10;
+        const newBehavior = Math.round((((worker.behaviorRating || 4.8) * count + behavior) / (count + 1)) * 10) / 10;
+        const newPricing = Math.round((((worker.pricingRating || 4.8) * count + pricingRating) / (count + 1)) * 10) / 10;
+        const newOverall = Math.round((((worker.rating || 4.8) * count + avgScore) / (count + 1)) * 10) / 10;
+        const isFair = pricingRating >= 3;
+        const newFairVotes = (worker.fairPricingVotes || Math.round(count * 0.96)) + (isFair ? 1 : 0);
+        const newFairPercent = Math.round((newPricing / 5) * 100);
+
+        this.updateWorker(updated.workerId, {
+          qualityRating: newQuality,
+          behaviorRating: newBehavior,
+          pricingRating: newPricing,
+          rating: newOverall,
+          ratingsCount: count + 1,
+          totalReviewsCount: count + 1,
+          fairPricingVotes: newFairVotes,
+          fairPricingPercentage: newFairPercent,
+        });
+      }
+    }
+
+    pushToCloud();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('sahakar_state_updated'));
+    }
+    return updated;
+  },
+
+  getWorkerReviews(workerUserId: string): Booking[] {
+    const bookings = this.getBookings();
+    return bookings
+      .filter((b) => b.workerId === workerUserId && (b.qualityRating !== undefined || b.reviewRating !== undefined || Boolean(b.reviewComment)))
+      .sort((a, b) => {
+        const timeA = new Date(a.reviewedAt || a.completedAt || a.createdAt).getTime();
+        const timeB = new Date(b.reviewedAt || b.completedAt || b.createdAt).getTime();
+        return timeB - timeA;
+      });
+  },
+
   updateBooking(id: string, update: Partial<Booking>): Booking | undefined {
     const bookings = this.getBookings();
     const idx = bookings.findIndex((b) => b.id === id);
@@ -638,43 +1025,6 @@ export const dataService = {
       const updated = { ...current, ...update };
       bookings[idx] = updated;
       setItem(LS_KEY_BOOKINGS, bookings);
-
-      const isBecomingComplete =
-        (update.status === 'COMPLETED_PAID_DIGITALLY' ||
-         update.status === 'COMPLETED_PAID_CASH' ||
-         update.status === 'COMPLETED') &&
-        !(current.status === 'COMPLETED_PAID_DIGITALLY' ||
-          current.status === 'COMPLETED_PAID_CASH' ||
-          current.status === 'COMPLETED');
-
-      if (isBecomingComplete && updated.workerId) {
-        const worker = this.findWorkerByUserId(updated.workerId);
-        if (worker) {
-          const isDigital = update.status === 'COMPLETED_PAID_DIGITALLY' || updated.paymentMethod === 'DIGITAL';
-          const isCash = update.status === 'COMPLETED_PAID_CASH' || updated.paymentMethod === 'CASH';
-
-          this.updateWorker(updated.workerId, {
-            totalEarnings: worker.totalEarnings + updated.totalAmount,
-            digitalEarnings: worker.digitalEarnings + (isDigital ? updated.totalAmount : 0),
-            cashEarnings: worker.cashEarnings + (isCash ? updated.totalAmount : 0),
-            completedJobs: worker.completedJobs + 1,
-          });
-        }
-        this.incrementWelfare(Math.round(updated.totalAmount * 0.05));
-      }
-
-      if (update.reviewRating && updated.workerId) {
-        const worker = this.findWorkerByUserId(updated.workerId);
-        if (worker) {
-          const currentCount = worker.ratingsCount || 20;
-          const newAvg = ((worker.rating * currentCount) + update.reviewRating) / (currentCount + 1);
-          this.updateWorker(updated.workerId, {
-            rating: Math.round(newAvg * 10) / 10,
-            ratingsCount: currentCount + 1,
-          });
-        }
-      }
-
       pushToCloud();
       return updated;
     }
@@ -693,18 +1043,23 @@ export const dataService = {
         b.status === 'COMPLETED'
     );
     const totalVolume = completedList.reduce((acc, b) => acc + b.totalAmount, 0) + 75500;
-    const activeArtisans = workers.length;
+    const activeArtisans = workers.filter((w) => w.accountStatus !== 'SUSPENDED_UNPAID_DUES').length;
+    const suspendedArtisans = workers.filter((w) => w.accountStatus === 'SUSPENDED_UNPAID_DUES').length;
     const verifiedArtisans = workers.filter((w) => w.kycStatus === 'VERIFIED').length;
     const pendingKyc = workers.filter((w) => w.kycStatus === 'PENDING').length;
     const totalCompletedJobs = completedList.length + 182;
+    const totalOutstandingWorkerDues = workers.reduce((acc, w) => acc + (w.outstandingDues || 0), 0);
 
     return {
       totalVolume,
       activeArtisans,
+      suspendedArtisans,
       verifiedArtisans,
       pendingKyc,
       totalCompletedJobs,
       welfareFundBalance: society.welfareFundBalance,
+      totalCommissionCollected: society.totalCommissionCollected || 14850,
+      totalOutstandingWorkerDues,
     };
   },
 };

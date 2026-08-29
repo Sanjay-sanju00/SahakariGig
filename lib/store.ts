@@ -25,6 +25,7 @@ export interface Society {
   district: string;
   state: string;
   welfareFundBalance: number;
+  totalCommissionCollected: number; // 5% platform fee accumulated from digital & cash dues
   monthlyPassRate: number; // Board-governed Monthly Pass (e.g. ₹69)
   yearlyPassRate: number;  // Board-governed Yearly Pass (e.g. ₹599)
 }
@@ -50,7 +51,7 @@ export interface WorkerProfile {
   name: string;
   email: string;
   phone?: string;
-  trade?: string;
+  trade: string;
   localSociety?: string;
   skills: string[];
   bio: string;
@@ -65,6 +66,16 @@ export interface WorkerProfile {
   completedJobs: number;
   rating: number;
   ratingsCount?: number;
+  // 3-Factor Quality & Trust Scores
+  qualityRating: number;          // 1.0 - 5.0 Work Quality score
+  behaviorRating: number;         // 1.0 - 5.0 Behavior, Punctuality & Respect score
+  pricingRating?: number;         // 1.0 - 5.0 Fair Pricing & Overcharge score (1=Highly Overcharged, 5=Highly Fair)
+  fairPricingPercentage: number;  // 0 - 100% Fair Pricing percentage
+  fairPricingVotes: number;       // Count of customers voting "Fair Pricing"
+  totalReviewsCount: number;      // Total review count
+  // Cash Commission Ledger & Automated Suspension
+  outstandingDues: number;        // Accumulated 5% platform dues from cash jobs (₹)
+  accountStatus: 'ACTIVE' | 'SUSPENDED_UNPAID_DUES';
 }
 
 export interface Service {
@@ -72,7 +83,8 @@ export interface Service {
   name: string;
   category: string;
   description: string;
-  price: number;
+  price: number; // Base rate for trade (₹)
+  basePrice?: number;
   icon: string;
   duration: string;
 }
@@ -91,7 +103,13 @@ export interface Booking {
   status: BookingStatus;
   scheduledDate: string;
   address: string;
-  totalAmount: number;
+  // Dynamic Invoice Breakdown
+  basePrice: number;              // Fixed trade base rate
+  extraCost?: number;             // Extra labor / material cost added by artisan
+  extraCostReason?: string;       // Reason / scope breakdown for extra cost
+  subtotalAmount?: number;        // Base + Extra
+  platformFee?: number;           // 5% PACS platform fee on customer
+  totalAmount: number;            // Subtotal + Platform Fee
   paymentStatus: PaymentStatus;
   paymentMethod?: 'DIGITAL' | 'CASH';
   createdAt: string;
@@ -99,6 +117,11 @@ export interface Booking {
   settlementRequestedAt?: string;
   paidAt?: string;
   completedAt?: string;
+  // 3-Factor Review Survey Submission
+  qualityRating?: number;         // 1 - 5 Work Quality
+  behaviorRating?: number;        // 1 - 5 Behavior & Punctuality
+  pricingRating?: number;         // 1 - 5 Pricing Fairness (1=Highly Overcharged, 5=Highly Fair)
+  fairPricingReport?: 'FAIR' | 'OVERCHARGED';
   reviewRating?: number;
   reviewComment?: string;
   reviewedAt?: string;
@@ -113,6 +136,7 @@ export const initialSociety: Society = {
   district: 'Central District Cluster',
   state: 'State Cooperative Federation',
   welfareFundBalance: 52400,
+  totalCommissionCollected: 14850,
   monthlyPassRate: 69,
   yearlyPassRate: 599,
 };
@@ -123,8 +147,9 @@ export const initialServices: Service[] = [
     name: 'Plumbing & Pipe Repair',
     category: 'Plumbing',
     description: 'Fix leaking taps, pipe washers, drainage clearance, and basic bathroom fixtures.',
-    price: 199,
-    icon: '🔧',
+    price: 200,
+    basePrice: 200,
+    icon: '',
     duration: '30–45 min',
   },
   {
@@ -132,8 +157,9 @@ export const initialServices: Service[] = [
     name: 'Electrical Socket & Switch Fix',
     category: 'Electrical',
     description: 'Repair faulty switches, MCB tripping issues, and household wiring checks.',
-    price: 299,
-    icon: '⚡',
+    price: 150,
+    basePrice: 150,
+    icon: '',
     duration: '45–60 min',
   },
   {
@@ -141,8 +167,9 @@ export const initialServices: Service[] = [
     name: 'Appliance Diagnosis & Repair',
     category: 'Appliance Fix',
     description: 'Inspection and diagnostics for washing machines, water coolers, pumps, and motors.',
-    price: 499,
-    icon: '🛠️',
+    price: 180,
+    basePrice: 180,
+    icon: '',
     duration: '60–90 min',
   },
   {
@@ -150,8 +177,9 @@ export const initialServices: Service[] = [
     name: 'Carpentry & Woodwork Fitting',
     category: 'Carpentry',
     description: 'Door hinges, handle fitting, shelf installation, and minor wooden repairs.',
-    price: 399,
-    icon: '🪚',
+    price: 250,
+    basePrice: 250,
+    icon: '',
     duration: '60–90 min',
   },
   {
@@ -159,8 +187,9 @@ export const initialServices: Service[] = [
     name: 'House Deep Cleaning & Sanitization',
     category: 'Cleaning',
     description: 'Intensive kitchen, bathroom, and household floor deep cleaning.',
-    price: 699,
-    icon: '🧹',
+    price: 300,
+    basePrice: 300,
+    icon: '',
     duration: '2–3 hrs',
   },
   {
@@ -168,8 +197,9 @@ export const initialServices: Service[] = [
     name: 'Ceiling Fan & Fixture Installation',
     category: 'Electrical',
     description: 'Complete ceiling/exhaust fan installation, regulator checks, and balancing.',
-    price: 349,
-    icon: '🔌',
+    price: 150,
+    basePrice: 150,
+    icon: '',
     duration: '45–60 min',
   },
 ];
@@ -247,8 +277,15 @@ const initialWorkers: WorkerProfile[] = [
     digitalEarnings: 28400,
     cashEarnings: 5800,
     completedJobs: 86,
-    rating: 4.8,
+    rating: 4.9,
     ratingsCount: 42,
+    qualityRating: 4.9,
+    behaviorRating: 4.8,
+    fairPricingPercentage: 97,
+    fairPricingVotes: 41,
+    totalReviewsCount: 42,
+    outstandingDues: 85,
+    accountStatus: 'ACTIVE',
   },
   {
     id: 'wp-2',
@@ -260,17 +297,24 @@ const initialWorkers: WorkerProfile[] = [
     localSociety: 'Primary Cooperative Services Society',
     skills: ['Tap Repair', 'Pipe Fitting', 'Drainage', 'Tank Cleaning'],
     bio: 'Experienced plumbing technician trained in residential water distribution.',
-    isAvailable: false,
-    kycStatus: 'PENDING',
+    isAvailable: true,
+    kycStatus: 'VERIFIED',
     kycDocName: 'kyc_kavita_sharma.jpg',
     subscriptionPlan: 'MONTHLY',
-    passValidUntil: new Date(Date.now() - 5 * 86400000).toISOString(), // Expired pass demo
+    passValidUntil: new Date(Date.now() + 20 * 86400000).toISOString(),
     totalEarnings: 21500,
     digitalEarnings: 17200,
     cashEarnings: 4300,
     completedJobs: 54,
-    rating: 4.6,
+    rating: 4.8,
     ratingsCount: 28,
+    qualityRating: 4.8,
+    behaviorRating: 4.9,
+    fairPricingPercentage: 96,
+    fairPricingVotes: 27,
+    totalReviewsCount: 28,
+    outstandingDues: 40,
+    accountStatus: 'ACTIVE',
   },
   {
     id: 'wp-3',
@@ -293,6 +337,13 @@ const initialWorkers: WorkerProfile[] = [
     completedJobs: 42,
     rating: 4.7,
     ratingsCount: 19,
+    qualityRating: 4.7,
+    behaviorRating: 4.8,
+    fairPricingPercentage: 95,
+    fairPricingVotes: 18,
+    totalReviewsCount: 19,
+    outstandingDues: 0,
+    accountStatus: 'ACTIVE',
   },
 ];
 
@@ -311,7 +362,11 @@ const initialBookings: Booking[] = [
     status: 'IN_PROGRESS',
     scheduledDate: '2026-08-28T10:00:00Z',
     address: 'Sector 4, Community Housing Block B',
-    totalAmount: 299,
+    basePrice: 150,
+    extraCost: 0,
+    subtotalAmount: 150,
+    platformFee: 8,
+    totalAmount: 158,
     paymentStatus: 'PENDING',
     createdAt: '2026-08-27T08:30:00Z',
     acceptedAt: '2026-08-27T08:35:00Z',
@@ -328,19 +383,120 @@ const initialBookings: Booking[] = [
     serviceName: 'Carpentry & Woodwork Fitting',
     problemDescription: 'Main wooden front door hinges loose and scraping against the floor tiles.',
     status: 'COMPLETED_PAID_DIGITALLY',
-    scheduledDate: '2026-08-25T09:00:00Z',
+    scheduledDate: '2026-08-26T14:00:00Z',
     address: 'Sector 4, Community Housing Block B',
-    totalAmount: 399,
+    basePrice: 250,
+    extraCost: 50,
+    extraCostReason: 'Replaced brass hinges and planed bottom door frame',
+    subtotalAmount: 300,
+    platformFee: 15,
+    totalAmount: 315,
     paymentStatus: 'PAID_DIGITAL',
     paymentMethod: 'DIGITAL',
-    createdAt: '2026-08-24T10:00:00Z',
-    acceptedAt: '2026-08-24T10:05:00Z',
-    settlementRequestedAt: '2026-08-24T11:00:00Z',
-    paidAt: '2026-08-24T11:05:00Z',
-    completedAt: '2026-08-24T11:05:00Z',
-    reviewRating: 5,
-    reviewComment: 'Excellent wood fitting work and very polite artisan!',
-    reviewedAt: '2026-08-24T12:00:00Z',
+    createdAt: '2026-08-25T11:00:00Z',
+    acceptedAt: '2026-08-25T11:10:00Z',
+    settlementRequestedAt: '2026-08-26T15:00:00Z',
+    paidAt: '2026-08-26T15:05:00Z',
+    completedAt: '2026-08-26T15:05:00Z',
+    qualityRating: 5,
+    behaviorRating: 5,
+    pricingRating: 5,
+    fairPricingReport: 'FAIR',
+    reviewRating: 5.0,
+    reviewComment: 'Prompt arrival and clean woodwork fitting. Fixed the scraping door smoothly without extra fuss!',
+    reviewedAt: '2026-08-26T15:30:00Z',
+  },
+  {
+    id: 'bk-rev-1',
+    customerId: 'usr-cust-2',
+    customerName: 'Sunita Kulkarni',
+    customerPhone: '9823099881',
+    customerAddress: 'Tower C-402, Green Meadows',
+    workerId: 'usr-wkr-1',
+    workerName: 'Suresh Patil',
+    serviceId: 'svc-2',
+    serviceName: 'Electrical Socket & Switch Fix',
+    status: 'COMPLETED_PAID_DIGITALLY',
+    scheduledDate: '2026-08-24T11:00:00Z',
+    address: 'Tower C-402, Green Meadows',
+    basePrice: 150,
+    extraCost: 30,
+    extraCostReason: 'Replaced heavy duty 16A AC socket',
+    subtotalAmount: 180,
+    platformFee: 9,
+    totalAmount: 189,
+    paymentStatus: 'PAID_DIGITAL',
+    paymentMethod: 'DIGITAL',
+    createdAt: '2026-08-24T09:00:00Z',
+    completedAt: '2026-08-24T12:00:00Z',
+    qualityRating: 5,
+    behaviorRating: 5,
+    pricingRating: 5,
+    fairPricingReport: 'FAIR',
+    reviewRating: 5.0,
+    reviewComment: 'Excellent electrical work! Replaced the faulty MCB switch and balanced the load cleanly. No extra hidden charges.',
+    reviewedAt: '2026-08-24T12:30:00Z',
+  },
+  {
+    id: 'bk-rev-2',
+    customerId: 'usr-cust-3',
+    customerName: 'Priya Nair',
+    customerPhone: '9823044556',
+    customerAddress: 'Villa 12, Cooperative Enclave',
+    workerId: 'usr-wkr-1',
+    workerName: 'Suresh Patil',
+    serviceId: 'svc-6',
+    serviceName: 'Ceiling Fan & Fixture Installation',
+    status: 'COMPLETED_PAID_DIGITALLY',
+    scheduledDate: '2026-08-22T16:00:00Z',
+    address: 'Villa 12, Cooperative Enclave',
+    basePrice: 150,
+    extraCost: 0,
+    subtotalAmount: 150,
+    platformFee: 8,
+    totalAmount: 158,
+    paymentStatus: 'PAID_DIGITAL',
+    paymentMethod: 'DIGITAL',
+    createdAt: '2026-08-22T14:00:00Z',
+    completedAt: '2026-08-22T17:15:00Z',
+    qualityRating: 5,
+    behaviorRating: 5,
+    pricingRating: 5,
+    fairPricingReport: 'FAIR',
+    reviewRating: 5.0,
+    reviewComment: 'Very punctual and courteous. Installed two BLDC ceiling fans neatly and tested all regulator speeds.',
+    reviewedAt: '2026-08-22T17:45:00Z',
+  },
+  {
+    id: 'bk-rev-3',
+    customerId: 'usr-cust-4',
+    customerName: 'Neha Gupta',
+    customerPhone: '9823077665',
+    customerAddress: 'Flat 301, Shanti Niketan',
+    workerId: 'usr-wkr-2',
+    workerName: 'Kavita Sharma',
+    serviceId: 'svc-1',
+    serviceName: 'Pipeline Leakage & Tap Fitting',
+    status: 'COMPLETED_PAID_DIGITALLY',
+    scheduledDate: '2026-08-25T10:00:00Z',
+    address: 'Flat 301, Shanti Niketan',
+    basePrice: 200,
+    extraCost: 40,
+    extraCostReason: 'Replaced Teflon washers and angle cock valve',
+    subtotalAmount: 240,
+    platformFee: 12,
+    totalAmount: 252,
+    paymentStatus: 'PAID_DIGITAL',
+    paymentMethod: 'DIGITAL',
+    createdAt: '2026-08-25T08:00:00Z',
+    completedAt: '2026-08-25T11:00:00Z',
+    qualityRating: 5,
+    behaviorRating: 5,
+    pricingRating: 5,
+    fairPricingReport: 'FAIR',
+    reviewRating: 5.0,
+    reviewComment: 'Fixed the leaking bathroom valve and cleared the drain trap without creating any mess. Super polite and honest billing!',
+    reviewedAt: '2026-08-25T11:30:00Z',
   },
 ];
 

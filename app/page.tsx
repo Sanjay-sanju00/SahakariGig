@@ -1,38 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Leaf, LogIn, UserPlus, X, CheckCircle, ChevronRight, MapPin,
-  CalendarDays, ShoppingBag, CreditCard, Loader2,
-  Shield, Star, AlertCircle,
-  IndianRupee, Clock, LogOut, Search,
-  Phone, MessageSquare, Send, Banknote, Check, AlertTriangle,
-  Coins, Wrench, FileText
+  Leaf, Search, CalendarDays, Clock, MapPin, Star,
+  Shield, CheckCircle, AlertCircle, Loader2,
+  LogIn, UserPlus, X, CreditCard, ChevronRight,
+  Sparkles, Wrench, Phone, Award, ThumbsUp, DollarSign,
+  LogOut, Check, MessageSquare, MessageCircle, ChevronDown, ChevronUp
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
-import dataService, { Service, Booking, User } from '@/lib/dataService';
-import { formatCurrency, formatDateTime, getBadgeClass, getStatusReadableLabel } from '@/lib/utils';
-
-// ─── Session Helpers ───────────────────────────────────────────────────────
-function getSessionUser(): User | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem('sahakargig_user');
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function setSessionUser(user: User | null) {
-  if (typeof window === 'undefined') return;
-  if (user) {
-    localStorage.setItem('sahakargig_user', JSON.stringify(user));
-  } else {
-    localStorage.removeItem('sahakargig_user');
-  }
-}
+import dataService, { Service, Booking, WorkerProfile, User, Society } from '@/lib/dataService';
+import { formatCurrency, formatDate, formatDateTime, getBadgeClass, getStatusReadableLabel } from '@/lib/utils';
 
 // ─── Sign In Modal ─────────────────────────────────────────────────────────
 interface SignInModalProps {
@@ -73,17 +52,17 @@ function SignInModal({ onClose, onSuccess, onSwitchToSignUp }: SignInModalProps)
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-box">
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+        <div className="flex items-center justify-between p-5 border-b border-zinc-100 dark:border-zinc-800/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
-              <Leaf className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-zinc-950 dark:bg-zinc-100 flex items-center justify-center">
+              <Leaf className="w-4 h-4 text-white dark:text-zinc-950" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900 leading-tight">Sign In to SahakarGig</h2>
-              <p className="text-xs text-slate-500">Cooperative Community Marketplace</p>
+              <h2 className="font-bold text-zinc-900 dark:text-zinc-50 leading-tight tracking-tight">Sign In to SahakarGig</h2>
+              <p className="text-xs text-zinc-500">Cooperative Community Marketplace</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -116,27 +95,27 @@ function SignInModal({ onClose, onSuccess, onSwitchToSignUp }: SignInModalProps)
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+              <div className="p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <button type="submit" className="btn-primary w-full py-2.5 font-bold" disabled={loading}>
+            <button type="submit" className="btn-primary w-full py-2.5 font-semibold" disabled={loading}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
-              {loading ? 'Authenticating…' : 'Sign In'}
+              <span>{loading ? 'Authenticating…' : 'Sign In'}</span>
             </button>
           </form>
 
-          <div className="divider my-4" />
+          <div className="h-px bg-zinc-100 dark:bg-zinc-800/60 my-4" />
 
           <div className="text-center">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-zinc-500">
               New to SahakarGig?{' '}
               <button
                 type="button"
                 onClick={onSwitchToSignUp}
-                className="text-blue-600 font-semibold hover:underline"
+                className="text-zinc-900 dark:text-zinc-100 font-semibold hover:underline"
               >
                 Create an Account
               </button>
@@ -162,18 +141,18 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [address, setAddress] = useState('');
-  const [trade, setTrade] = useState('Plumbing');
+  const [trade, setTrade] = useState('Electrical');
   const [kycDocName, setKycDocName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const TRADES = [
-    'Plumbing',
     'Electrical',
+    'Plumbing',
     'Carpentry',
-    'Cleaning',
     'Appliance Fix',
+    'Cleaning',
   ];
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -185,247 +164,218 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !password.trim() || !address.trim() || !phone.trim()) {
-      setError('Please fill in all required fields including your phone number.');
+    if (!name.trim() || !email.trim() || !phone.trim() || !password.trim()) {
+      setError('Please fill in all mandatory fields.');
       return;
     }
-    if (phone.trim().length < 10) {
-      setError('Please enter a valid 10-digit mobile phone number.');
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      setError('Please enter a valid 10-digit mobile number.');
       return;
     }
+
     setError('');
     setLoading(true);
 
     try {
-      await dataService.syncCloud();
-      const existing = dataService.findUser(email.trim().toLowerCase());
-      if (existing) {
-        setError('An account with this email already exists.');
-        setLoading(false);
-        return;
-      }
-
       const newUser: User = {
         id: `usr-${Date.now()}`,
         name: name.trim(),
         email: email.trim().toLowerCase(),
+        phone: cleanPhone,
         password: password.trim(),
-        phone: phone.trim(),
         role,
-        address: address.trim(),
+        address: address.trim() || undefined,
         trade: role === 'WORKER' ? trade : undefined,
+        kycDocName: role === 'WORKER' ? (kycDocName || 'identity_proof.pdf') : undefined,
         localSociety: 'Primary Cooperative Services Society',
-        kycDocName: role === 'WORKER' ? (kycDocName || 'artisan_id_card.pdf') : undefined,
         isVerified: true,
         createdAt: new Date().toISOString(),
       };
 
-      const workerPayload = role === 'WORKER' ? {
-        trade,
-        skills: [trade, 'Maintenance', 'Repairs'],
-        bio: `${trade} specialist associated with Primary Cooperative Services Society.`,
-        kycDocName: kycDocName || 'artisan_id_card.pdf',
-      } : undefined;
-
-      const registered = await dataService.register(newUser, workerPayload);
-      onSuccess(registered);
+      const user = await dataService.register(newUser);
+      onSuccess(user);
     } catch {
-      setError('Failed to create account. Please try again.');
+      setError('Failed to create account. Email may already be in use.');
       setLoading(false);
     }
   }
 
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-box modal-box-lg">
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+      <div className="modal-box max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-zinc-100 dark:border-zinc-800/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
-              <UserPlus className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-lg bg-zinc-950 dark:bg-zinc-100 flex items-center justify-center">
+              <Leaf className="w-4 h-4 text-white dark:text-zinc-950" />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900 leading-tight">Create an Account</h2>
-              <p className="text-xs text-slate-500">Join the SahakarGig Cooperative Network</p>
+              <h2 className="font-bold text-zinc-900 dark:text-zinc-50 leading-tight tracking-tight">Join SahakarGig</h2>
+              <p className="text-xs text-zinc-500">Cooperative Services Network</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <form onSubmit={handleSignUp} className="space-y-4">
-            {/* Role Selection */}
-            <div>
-              <label className="form-label mb-1.5">Account Role</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRole('CUSTOMER')}
-                  className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
-                    role === 'CUSTOMER'
-                      ? 'border-blue-600 bg-blue-50/70 text-blue-900 shadow-sm'
-                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
-                  }`}
-                >
-                  <ShoppingBag className={`w-4 h-4 mt-0.5 ${role === 'CUSTOMER' ? 'text-blue-600' : 'text-slate-400'}`} />
-                  <div>
-                    <div className="text-xs font-bold">Customer</div>
-                    <div className="text-[11px] text-slate-500">Book trusted local services</div>
-                  </div>
-                </button>
+          {/* Role Selection */}
+          <div>
+            <label className="form-label">I want to register as:</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setRole('CUSTOMER')}
+                className={`p-3 rounded-xl border text-center transition-all text-sm ${
+                  role === 'CUSTOMER'
+                    ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-950 dark:bg-zinc-50 text-white dark:text-zinc-950 font-bold'
+                    : 'border-zinc-200 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                }`}
+              >
+                <div className="font-bold">Resident / Customer</div>
+                <div className="text-[10px] opacity-75 mt-0.5">Book local verified services</div>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setRole('WORKER')}
-                  className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
-                    role === 'WORKER'
-                      ? 'border-blue-600 bg-blue-50/70 text-blue-900 shadow-sm'
-                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
-                  }`}
-                >
-                  <div className="w-4 h-4 mt-0.5 text-blue-600 font-bold">🔧</div>
-                  <div>
-                    <div className="text-xs font-bold">Worker / Artisan</div>
-                    <div className="text-[11px] text-slate-500">Earn with 0% commission</div>
-                  </div>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setRole('WORKER')}
+                className={`p-3 rounded-xl border text-center transition-all text-sm ${
+                  role === 'WORKER'
+                    ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-950 dark:bg-zinc-50 text-white dark:text-zinc-950 font-bold'
+                    : 'border-zinc-200 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
+                }`}
+              >
+                <div className="font-bold">Artisan / Worker</div>
+                <div className="text-[10px] opacity-75 mt-0.5">Offer trade services with PACS</div>
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSignUp} className="space-y-3.5">
+            <div>
+              <label className="form-label">Full Name</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. Ramesh Kumar"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
             </div>
 
-            {/* Shared Inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="form-label">Full Name</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Ramesh Kumar"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
               <div>
                 <label className="form-label">Email Address</label>
                 <input
                   type="email"
                   className="form-input"
-                  placeholder="name@example.com"
+                  placeholder="ramesh@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="form-label">Phone Number (10 Digits)</label>
-                <div className="flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-                  <span className="bg-slate-100 dark:bg-slate-800 px-3 py-2.5 border-r border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 select-none">
-                    +91
-                  </span>
+                <label className="form-label">Mobile Number</label>
+                <div className="flex rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700/60 focus-within:border-zinc-600 focus-within:ring-2 focus-within:ring-zinc-900/10 dark:focus-within:ring-zinc-100/10 transition-all">
+                  <div className="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2.5 py-2 text-xs font-semibold flex items-center border-r border-zinc-200 dark:border-zinc-700/60">
+    <span>+91</span>
+  </div>
                   <input
                     type="tel"
-                    className="w-full bg-transparent px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none font-mono"
-                    placeholder="Enter 10-digit mobile number"
-                    value={phone}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                      setPhone(val);
-                      setError('');
-                    }}
+                    className="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 outline-none"
+                    placeholder="9876543210"
                     maxLength={10}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     required
                   />
                 </div>
               </div>
-              <div>
-                <label className="form-label">Create Password</label>
-                <input
-                  type="password"
-                  className="form-input"
-                  placeholder="Min 6 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
             </div>
 
             <div>
-              <label className="form-label">Address / Village Cluster</label>
+              <label className="form-label">Password</label>
               <input
-                type="text"
+                type="password"
                 className="form-input"
-                placeholder="e.g. Sector 4 Cluster, Block B"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Create a secure password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
 
-            {/* Worker Specific */}
+            <div>
+              <label className="form-label">Village / Ward Address</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. House 42, North Cluster, Gram Panchayat"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+            </div>
+
             {role === 'WORKER' && (
-              <div className="space-y-3 pt-1 border-t border-slate-100">
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-3">
                 <div>
-                  <label className="form-label">Primary Trade Category</label>
+                  <label className="form-label text-xs">Primary Trade</label>
                   <select
-                    className="form-input"
+                    className="form-input text-xs"
                     value={trade}
                     onChange={(e) => setTrade(e.target.value)}
                   >
-                    {TRADES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
+                    {TRADES.map((tr) => (
+                      <option key={tr} value={tr}>{tr}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="form-label">Sample KYC Document Upload</label>
-                  <div
+                  <label className="form-label text-xs">Identity Document (Aadhaar / Voter ID)</label>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  <button
+                    type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="border border-dashed border-blue-300 bg-blue-50/40 hover:bg-blue-50 rounded-xl p-3 text-center cursor-pointer transition-colors"
+                    className="w-full py-2 px-3 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between transition-colors"
                   >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      className="hidden"
-                      onChange={handleFileSelect}
-                    />
-                    <div className="text-xs font-semibold text-blue-700">
-                      <span>{kycDocName || 'Click to select sample ID card / certificate'}</span>
-                    </div>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Accepts PDF, JPG, PNG (Simulated Document)</p>
-                  </div>
+                    <span>{kycDocName || 'Upload ID Document (.pdf, .jpg)'}</span>
+                    <span className="text-zinc-900 dark:text-zinc-100 font-bold">Browse</span>
+                  </button>
                 </div>
               </div>
             )}
 
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+              <div className="p-3 rounded-lg bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <button type="submit" className="btn-primary w-full py-2.5 font-bold" disabled={loading}>
+            <button type="submit" className="btn-primary w-full py-2.5 font-semibold" disabled={loading}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-              {loading ? 'Registering Account…' : 'Register & Sign In'}
+              <span>{loading ? 'Creating Account…' : 'Register & Sign In'}</span>
             </button>
           </form>
 
-          <div className="divider my-4" />
-
           <div className="text-center">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-zinc-500">
               Already have an account?{' '}
               <button
                 type="button"
                 onClick={onSwitchToSignIn}
-                className="text-blue-600 font-semibold hover:underline"
+                className="text-zinc-900 dark:text-zinc-100 font-semibold hover:underline"
               >
                 Sign In
               </button>
@@ -437,175 +387,112 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
   );
 }
 
-// ─── Post-Service Digital Payment Modal ─────────────────────────────────────
-interface PostServicePaymentModalProps {
-  booking: Booking;
-  onConfirm: () => Promise<void>;
-  onClose: () => void;
-}
-
-function PostServicePaymentModal({ booking, onConfirm, onClose }: PostServicePaymentModalProps) {
-  const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  async function handleDigitalPay() {
-    setProcessing(true);
-    await onConfirm();
-    setProcessing(false);
-    setSuccess(true);
-    setTimeout(() => {
-      onClose();
-    }, 1000);
-  }
-
-  return (
-    <div className="modal-backdrop">
-      <div className="modal-box">
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-blue-600" />
-            <h3 className="font-bold text-slate-900">Post-Service Digital Payment</h3>
-          </div>
-          {!processing && !success && (
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="p-5">
-          {!success ? (
-            <div className="space-y-4">
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 space-y-2">
-                <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
-                  <span>Completed Service</span>
-                  <span className="font-bold text-slate-900 dark:text-slate-100">{booking.serviceName}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400">
-                  <span>Assigned Artisan</span>
-                  <span className="font-bold text-slate-900 dark:text-slate-100">{booking.workerName || 'Assigned Artisan'}</span>
-                </div>
-                <div className="h-px bg-slate-200 dark:bg-slate-800 my-1" />
-                <div className="flex justify-between items-center text-sm font-black text-slate-900 dark:text-slate-100">
-                  <span>Total Service Fee</span>
-                  <span className="text-blue-600 dark:text-blue-400 text-lg font-black">{formatCurrency(booking.totalAmount)}</span>
-                </div>
-              </div>
-
-              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-100 dark:border-emerald-800/80 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>100% of this fee is credited directly to {booking.workerName}. Zero platform commission.</span>
-              </div>
-
-              <button
-                onClick={handleDigitalPay}
-                className="btn-primary w-full py-3 text-sm font-bold shadow-sm"
-                disabled={processing}
-              >
-                {processing ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Authorizing Digital Settlement…
-                  </span>
-                ) : (
-                  <span>Confirm Digital Payment of {formatCurrency(booking.totalAmount)}</span>
-                )}
-              </button>
-            </div>
-          ) : (
-            <div className="py-8 text-center space-y-3 animate-fadein">
-              <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center mx-auto">
-                <CheckCircle className="w-8 h-8" />
-              </div>
-              <div className="font-bold text-slate-900 dark:text-slate-100 text-base">Digital Payment Settled!</div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Thank you! Please share your feedback below.</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Service Booking Modal (Zero Pre-Payment) ───────────────────────────────
-interface ServiceBookingModalProps {
-  service: Service;
+// ─── Worker Booking Modal Component ─────────────────────────────────────────
+interface WorkerBookingModalProps {
+  worker: WorkerProfile;
+  tradeBasePrice: number;
   user: User;
   onClose: () => void;
   onBookingSubmitted: (booking: Booking) => void;
 }
 
-function ServiceBookingModal({ service, user, onClose, onBookingSubmitted }: ServiceBookingModalProps) {
+function WorkerBookingModal({ worker, tradeBasePrice, user, onClose, onBookingSubmitted }: WorkerBookingModalProps) {
+  const [date, setDate] = useState(new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16));
   const [address, setAddress] = useState(user.address || '');
-  const [phone, setPhone] = useState('');
-  const [date, setDate] = useState('');
+  const [phone, setPhone] = useState(user.phone || '');
   const [problemDescription, setProblemDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleBook(e: React.FormEvent) {
     e.preventDefault();
-    if (!address.trim() || !date || !phone.trim()) {
-      setError('Please provide service location, contact phone number, and preferred time.');
+    if (!address.trim() || !phone.trim()) {
+      setError('Please provide your service address and contact phone number.');
       return;
     }
-    if (phone.trim().length < 10) {
-      setError('Please enter a valid 10-digit mobile phone number.');
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      setError('Please enter a valid 10-digit phone number.');
       return;
     }
-    if (!problemDescription.trim()) {
-      setError('Please provide a brief description of the issue or repair required.');
-      return;
-    }
+
     setError('');
     setLoading(true);
 
-    setTimeout(() => {
-      const newBooking: Booking = {
-        id: `bk-${Date.now()}`,
-        customerId: user.id,
-        customerName: user.name,
-        customerPhone: phone.trim(),
-        customerAddress: address.trim(),
-        serviceId: service.id,
-        serviceName: service.name,
-        problemDescription: problemDescription.trim(),
-        status: 'PENDING_ACCEPTANCE',
-        scheduledDate: new Date(date).toISOString(),
-        address: address.trim(),
-        totalAmount: service.price,
-        paymentStatus: 'PENDING',
-        createdAt: new Date().toISOString(),
-      };
+    const fee = Math.round(tradeBasePrice * 0.05);
+    const newBooking: Booking = {
+      id: `bk-${Date.now()}`,
+      customerId: user.id,
+      customerName: user.name,
+      customerPhone: phone.trim(),
+      customerAddress: address.trim(),
+      workerId: worker.userId,
+      workerName: worker.name,
+      serviceId: `trade-${worker.trade.toLowerCase()}`,
+      serviceName: `${worker.trade} Repair & Service`,
+      problemDescription: problemDescription.trim(),
+      status: 'PENDING_ACCEPTANCE',
+      scheduledDate: new Date(date).toISOString(),
+      address: address.trim(),
+      basePrice: tradeBasePrice,
+      extraCost: 0,
+      subtotalAmount: tradeBasePrice,
+      platformFee: fee,
+      totalAmount: tradeBasePrice + fee,
+      paymentStatus: 'PENDING',
+      createdAt: new Date().toISOString(),
+    };
 
-      const added = dataService.addBooking(newBooking);
-      setLoading(false);
-      onBookingSubmitted(added);
-    }, 300);
+    const added = dataService.addBooking(newBooking);
+    setLoading(false);
+    onBookingSubmitted(added);
   }
 
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal-box">
-        <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between p-5 border-b border-zinc-100 dark:border-zinc-800/60">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{service.icon}</span>
+            <div className="w-10 h-10 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center font-black text-lg">
+              {worker.name.charAt(0)}
+            </div>
             <div>
-              <h3 className="font-bold text-slate-900 dark:text-slate-100">{service.name}</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{service.category} · Fixed Rate: {formatCurrency(service.price)}</p>
+              <h3 className="font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Book {worker.name}</h3>
+              <p className="text-xs text-zinc-500">
+                {worker.trade} · Standard Base Diagnostic Rate: {formatCurrency(tradeBasePrice)}
+              </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-300">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleBook} className="p-5 space-y-4">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+            <Shield className="w-4 h-4 shrink-0 text-zinc-500" />
+            <span>
+              <strong className="text-zinc-900 dark:text-zinc-100">Zero Upfront Payment:</strong> You will only be billed after {worker.name} inspects or finishes the service.
+            </span>
+          </div>
+
           <div>
-            <label className="form-label">Service Address / Residence</label>
+            <label className="form-label text-xs">Preferred Service Date & Time</label>
+            <input
+              type="datetime-local"
+              className="form-input text-xs"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="form-label text-xs">Service Address</label>
             <input
               type="text"
-              className="form-input"
-              placeholder="House/Flat No., Street, Sector Cluster"
+              className="form-input text-xs"
+              placeholder="House / Flat No, Street, Ward, Village"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               required
@@ -613,302 +500,595 @@ function ServiceBookingModal({ service, user, onClose, onBookingSubmitted }: Ser
           </div>
 
           <div>
-            <label className="form-label">Contact Phone Number (For Worker Direct Call & WhatsApp)</label>
-            <div className="flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-              <span className="bg-slate-100 dark:bg-slate-800 px-3 py-2.5 border-r border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 select-none">
-                +91
-              </span>
+            <label className="form-label text-xs">Your Contact Mobile Number</label>
+            <div className="flex rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700/60 focus-within:border-zinc-600 focus-within:ring-2 focus-within:ring-zinc-900/10 dark:focus-within:ring-zinc-100/10 transition-all">
+              <div className="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2.5 py-2 text-xs font-semibold flex items-center border-r border-zinc-200 dark:border-zinc-700/60">
+    <span>+91</span>
+  </div>
               <input
                 type="tel"
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none font-mono"
-                placeholder="Enter 10-digit mobile number"
-                value={phone}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
-                  setPhone(val);
-                  setError('');
-                }}
+                className="w-full px-3 py-2 text-xs bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 outline-none font-bold"
+                placeholder="9876543210"
                 maxLength={10}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="form-label">Preferred Date & Time</label>
-            <input
-              type="datetime-local"
-              className="form-input"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              min={new Date().toISOString().slice(0, 16)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="form-label">
-              Describe the Problem / Issue Details <span className="text-blue-600 dark:text-blue-400">*</span>
-            </label>
+            <label className="form-label text-xs">Describe the Issue (Optional)</label>
             <textarea
-              rows={3}
               className="form-input text-xs"
-              placeholder="Describe the issue (e.g., Kitchen tap is leaking from the pipe joint, or ceiling fan speed regulator makes a buzzing noise)..."
+              rows={2}
+              placeholder="e.g. Main switchboard tripping or leaking kitchen tap..."
               value={problemDescription}
               onChange={(e) => setProblemDescription(e.target.value)}
-              required
             />
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">This description will be shared with the assigned artisan before arrival.</p>
-          </div>
-
-          {/* Post-Service Zero Pre-Payment Guarantee Card */}
-          <div className="rounded-xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 p-4 space-y-1.5 text-xs text-emerald-900 dark:text-emerald-200">
-            <div className="flex justify-between font-bold">
-              <span>Standard Fixed Price</span>
-              <span className="text-blue-700 dark:text-blue-300 font-black">{formatCurrency(service.price)}</span>
-            </div>
-            <p className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
-              🛡️ <strong>Zero Pre-Payment Model:</strong> You pay nothing right now. Payment is due only after the artisan arrives, finishes the physical service, and requests settlement.
-            </p>
           </div>
 
           {error && (
-            <div className="p-2.5 bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-300 text-xs rounded-lg flex items-center gap-1.5 border border-red-200 dark:border-red-900">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
+            <div className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold">
+              {error}
             </div>
           )}
 
-          <button type="submit" className="btn-primary w-full py-2.5 font-bold shadow-sm" disabled={loading}>
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingBag className="w-4 h-4" />}
-            {loading ? 'Submitting Request…' : 'Book Service (Pay After Work Done)'}
-          </button>
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-secondary text-xs py-2 px-4 font-semibold"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary text-xs py-2.5 px-5 font-semibold flex items-center gap-1.5"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
+              <span>Book {worker.name} (Pay After Work Done)</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>
   );
 }
 
-// ─── Customer Review Card ───────────────────────────────────────────────────
-function CustomerReviewCard({ booking, onReviewSubmitted }: { booking: Booking; onReviewSubmitted: () => void }) {
-  const [rating, setRating] = useState(5);
-  const [hoverRating, setHoverRating] = useState(0);
-  const [comment, setComment] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(!!booking.reviewRating);
+// ─── Post-Service Digital Payment Modal ──────────────────────────────────────
+interface PostServicePaymentModalProps {
+  booking: Booking;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+}
 
-  async function handleReviewSubmit(e: React.FormEvent) {
+function PostServicePaymentModal({ booking, onClose, onConfirm }: PostServicePaymentModalProps) {
+  const [loading, setLoading] = useState(false);
+  const base = booking.basePrice || 150;
+  const extra = booking.extraCost || 0;
+  const subtotal = booking.subtotalAmount || (base + extra);
+  const platformFee = booking.platformFee || Math.round(subtotal * 0.05);
+  const total = booking.totalAmount || (subtotal + platformFee);
+
+  async function handlePay() {
+    setLoading(true);
+    await onConfirm();
+    setLoading(false);
+    onClose();
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+          <div className="flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-sm tracking-tight">Post-Service Digital Settlement</h3>
+          </div>
+          <button onClick={onClose} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-2 text-xs">
+          <div className="font-bold text-zinc-900 dark:text-zinc-50 text-sm pb-1 border-b border-zinc-100 dark:border-zinc-800/60 tracking-tight">
+            Final Itemized Bill ({booking.serviceName})
+          </div>
+          <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
+            <span>Base Diagnostic Rate:</span>
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">{formatCurrency(base)}</span>
+          </div>
+
+          {extra > 0 && (
+            <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
+              <span>Extra Labor / Materials ({booking.extraCostReason || 'Parts'}):</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100 tabular-nums">+{formatCurrency(extra)}</span>
+            </div>
+          )}
+
+          <div className="flex justify-between font-bold text-zinc-900 dark:text-zinc-50 pt-1 border-t border-zinc-100 dark:border-zinc-800/60">
+            <span>Artisan Fee (100% Payout):</span>
+            <span className="tabular-nums">{formatCurrency(subtotal)}</span>
+          </div>
+
+          <div className="flex justify-between text-zinc-500 dark:text-zinc-400">
+            <span>PACS Platform Fee (5%):</span>
+            <span className="tabular-nums">+{formatCurrency(platformFee)}</span>
+          </div>
+
+          <div className="h-px bg-zinc-200 dark:bg-zinc-700/60 my-1" />
+
+          <div className="flex justify-between font-black text-base text-zinc-900 dark:text-zinc-50">
+            <span>Total Payable Amount:</span>
+            <span className="tabular-nums">{formatCurrency(total)}</span>
+          </div>
+        </div>
+
+        <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs text-zinc-600 dark:text-zinc-400">
+          <div className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-zinc-100 mb-0.5">
+            <Shield className="w-3.5 h-3.5 text-zinc-500" /> Direct Payout Guarantee
+          </div>
+          <p className="text-[11px] leading-relaxed">
+            {formatCurrency(subtotal)} will be credited directly to {booking.workerName || 'the artisan'}&apos;s wallet immediately.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn-secondary text-xs py-2 px-4 font-semibold"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handlePay}
+            disabled={loading}
+            className="btn-primary text-xs py-2.5 px-6 font-semibold flex items-center gap-2"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+            <span>Confirm Payment of {formatCurrency(total)}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Mandatory 3-Factor Customer Review Survey ─────────────────────────────
+interface CustomerReviewCardProps {
+  booking: Booking;
+  onReviewSubmitted: () => void;
+}
+
+function CustomerReviewCard({ booking, onReviewSubmitted }: CustomerReviewCardProps) {
+  const [quality, setQuality] = useState(5);
+  const [behavior, setBehavior] = useState(5);
+  const [pricingRating, setPricingRating] = useState(5);
+  const [reviewNote, setReviewNote] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const PRICING_SCALE_LABELS: Record<number, { label: string; color: string; desc: string }> = {
+    1: { label: 'Highly Overcharged', color: 'text-zinc-600 dark:text-zinc-400', desc: 'Unreasonable & excessive charges' },
+    2: { label: 'Somewhat Overpriced', color: 'text-zinc-600 dark:text-zinc-400', desc: 'Higher than expected scope' },
+    3: { label: 'Average / Acceptable', color: 'text-zinc-600 dark:text-zinc-400', desc: 'Standard charges' },
+    4: { label: 'Fair & Reasonable', color: 'text-zinc-700 dark:text-zinc-300', desc: 'Accurate and fair pricing' },
+    5: { label: 'Very Fair & Genuine Value', color: 'text-zinc-900 dark:text-zinc-100', desc: '100% transparent & genuine PACS pricing' },
+  };
+
+  if (booking.qualityRating !== undefined || submitted) {
+    return (
+      <div className="p-3.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/60 text-xs text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+        <CheckCircle className="w-4 h-4 text-zinc-500 shrink-0" />
+        <span>Thank you! Your 3-factor feedback has been recorded and verified for {booking.workerName}.</span>
+      </div>
+    );
+  }
+
+  function handleSubmitReview(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setTimeout(() => {
-      dataService.updateBooking(booking.id, {
-        reviewRating: rating,
-        reviewComment: comment.trim() || 'Service completed satisfactorily.',
-        reviewedAt: new Date().toISOString(),
-      });
+      dataService.submitThreeFactorReview(booking.id, quality, behavior, pricingRating, reviewNote);
       setSubmitting(false);
       setSubmitted(true);
       onReviewSubmitted();
     }, 300);
   }
 
-  if (submitted || booking.reviewRating) {
-    return (
-      <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 rounded-xl space-y-1.5">
-        <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-300">
-          <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          Review Submitted ({booking.reviewRating || rating} ★)
-        </div>
-        <p className="text-xs text-emerald-700 dark:text-emerald-300 italic font-medium">
-          &quot;{booking.reviewComment || comment || 'Great service!'}&quot;
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={handleReviewSubmit} className="p-4 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl space-y-3">
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Rate Service Quality ({booking.workerName || 'Artisan'})</span>
-        <div className="flex items-center gap-1">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              type="button"
-              key={star}
-              onClick={() => setRating(star)}
-              onMouseEnter={() => setHoverRating(star)}
-              onMouseLeave={() => setHoverRating(0)}
-              className="p-0.5 text-amber-400 hover:scale-110 transition-transform"
-            >
-              <Star
-                className={`w-4 h-4 ${
-                  (hoverRating || rating) >= star ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-600'
-                }`}
-              />
-            </button>
-          ))}
+    <form onSubmit={handleSubmitReview} className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 space-y-3.5">
+      <div className="flex items-center gap-2 pb-1 border-b border-zinc-200 dark:border-zinc-700/60">
+        <Award className="w-4 h-4 text-zinc-500" />
+        <span className="font-bold text-zinc-900 dark:text-zinc-50 text-xs tracking-tight">
+          Mandatory 3-Factor Performance & Pricing Survey for {booking.workerName}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+        {/* Factor 1: Quality */}
+        <div className="p-2.5 bg-white dark:bg-zinc-800/60 rounded-lg border border-zinc-200 dark:border-zinc-700/60 space-y-1.5 flex flex-col justify-between">
+          <div>
+            <label className="font-bold text-zinc-700 dark:text-zinc-300 block">
+              1. Work Quality & Skill
+            </label>
+            <span className="text-[10px] text-zinc-400">Technical correctness</span>
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((st) => (
+                <button
+                  type="button"
+                  key={st}
+                  onClick={() => setQuality(st)}
+                  className={`p-0.5 rounded transition-transform active:scale-125 ${quality >= st ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-300 dark:text-zinc-700'}`}
+                >
+                  <Star className="w-4 h-4 fill-current" />
+                </button>
+              ))}
+            </div>
+            <span className="font-bold text-zinc-800 dark:text-zinc-200 text-xs tabular-nums">{quality}/5</span>
+          </div>
+        </div>
+
+        {/* Factor 2: Behavior */}
+        <div className="p-2.5 bg-white dark:bg-zinc-800/60 rounded-lg border border-zinc-200 dark:border-zinc-700/60 space-y-1.5 flex flex-col justify-between">
+          <div>
+            <label className="font-bold text-zinc-700 dark:text-zinc-300 block">
+              2. Behavior & Punctuality
+            </label>
+            <span className="text-[10px] text-zinc-400">Politeness & timeliness</span>
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((st) => (
+                <button
+                  type="button"
+                  key={st}
+                  onClick={() => setBehavior(st)}
+                  className={`p-0.5 rounded transition-transform active:scale-125 ${behavior >= st ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-300 dark:text-zinc-700'}`}
+                >
+                  <Star className="w-4 h-4 fill-current" />
+                </button>
+              ))}
+            </div>
+            <span className="font-bold text-zinc-800 dark:text-zinc-200 text-xs tabular-nums">{behavior}/5</span>
+          </div>
+        </div>
+
+        {/* Factor 3: Pricing Fairness & Overcharge Rating (1=Highly Overcharged, 5=Very Fair) */}
+        <div className="p-2.5 bg-white dark:bg-zinc-800/60 rounded-lg border border-zinc-200 dark:border-zinc-700/60 space-y-1.5 flex flex-col justify-between">
+          <div>
+            <label className="font-bold text-zinc-700 dark:text-zinc-300 block">
+              3. Pricing Fairness & Overcharge Rating
+            </label>
+            <span className={`text-[10px] font-bold block truncate ${PRICING_SCALE_LABELS[pricingRating].color}`}>
+              {pricingRating} - {PRICING_SCALE_LABELS[pricingRating].label}
+            </span>
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((st) => (
+                <button
+                  type="button"
+                  key={st}
+                  onClick={() => setPricingRating(st)}
+                  className={`p-0.5 rounded transition-transform active:scale-125 ${pricingRating >= st ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-300 dark:text-zinc-700'}`}
+                >
+                  <Star className="w-4 h-4 fill-current" />
+                </button>
+              ))}
+            </div>
+            <span className="font-bold text-zinc-800 dark:text-zinc-200 text-xs tabular-nums">{pricingRating}/5</span>
+          </div>
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex items-center justify-between gap-3 pt-1">
         <input
           type="text"
-          className="form-input text-xs py-1.5 flex-1"
-          placeholder="Share feedback on work quality, punctuality, etc…"
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          className="form-input text-xs flex-1 py-1.5"
+          placeholder="Optional feedback comment for the cooperative committee…"
+          value={reviewNote}
+          onChange={(e) => setReviewNote(e.target.value)}
         />
         <button
           type="submit"
-          className="btn-primary text-xs py-1.5 px-3 whitespace-nowrap font-bold"
           disabled={submitting}
+          className="btn-primary text-xs py-2 px-4 font-semibold shrink-0"
         >
-          {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-          Submit Review
+          {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+          <span>Submit Review</span>
         </button>
       </div>
     </form>
   );
 }
 
-// ─── Main Customer Portal ──────────────────────────────────────────────────
-export default function CustomerPortal() {
+// ─── Worker Customer Reviews Modal ──────────────────────────────────────────
+interface WorkerReviewsModalProps {
+  worker: WorkerProfile;
+  reviews: Booking[];
+  onClose: () => void;
+}
+
+function WorkerReviewsModal({ worker, reviews, onClose }: WorkerReviewsModalProps) {
+  return (
+    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box modal-box-lg p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center font-black text-base shadow-sm">
+              {worker.name.charAt(0)}
+            </div>
+            <div>
+              <h3 className="font-black text-zinc-900 dark:text-zinc-50 text-base leading-tight tracking-tight">
+                {worker.name} — Verified Resident Reviews
+              </h3>
+              <p className="text-xs text-zinc-500">
+                {worker.trade} Artisan · {worker.localSociety || 'Primary Cooperative Society'}
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* 3-Factor Overall Summary */}
+        <div className="grid grid-cols-3 gap-2 p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-center text-xs">
+          <div>
+            <span className="text-[10px] text-zinc-400 block font-semibold tracking-wide">Work Quality</span>
+            <span className="font-bold text-zinc-900 dark:text-zinc-50 text-sm tabular-nums"> {(worker.qualityRating || 4.9).toFixed(1)} / 5</span>
+          </div>
+          <div>
+            <span className="text-[10px] text-zinc-400 block font-semibold tracking-wide">Behavior</span>
+            <span className="font-bold text-zinc-900 dark:text-zinc-50 text-sm tabular-nums"> {(worker.behaviorRating || 4.8).toFixed(1)} / 5</span>
+          </div>
+          <div>
+            <span className="text-[10px] text-zinc-400 block font-semibold tracking-wide">Pricing Fairness</span>
+            <span className="font-bold text-zinc-900 dark:text-zinc-50 text-sm tabular-nums"> {(worker.pricingRating || 4.9).toFixed(1)} / 5</span>
+          </div>
+        </div>
+
+        {/* Reviews List */}
+        <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+          {reviews.length === 0 ? (
+            <div className="p-8 text-center text-xs text-zinc-400 space-y-2">
+              <MessageSquare className="w-8 h-8 mx-auto text-zinc-300 dark:text-zinc-700" />
+              <p className="font-semibold text-zinc-600 dark:text-zinc-400">No written reviews yet</p>
+              <p className="text-[11px]">All performance ratings are verified by the PACS Cooperative Committee.</p>
+            </div>
+          ) : (
+            reviews.map((r) => (
+              <div key={r.id} className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold text-xs flex items-center justify-center">
+                      {(r.customerName || 'R').charAt(0)}
+                    </div>
+                    <span className="font-bold text-zinc-900 dark:text-zinc-50 text-xs">
+                      {r.customerName || 'Verified Resident'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-zinc-400">
+                    {r.reviewedAt ? formatDate(r.reviewedAt) : 'Recent'}
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5 text-[10px]">
+                  <span className="bg-white dark:bg-zinc-800/60 px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-300 font-semibold">
+                     Skill: {r.qualityRating || 5}/5
+                  </span>
+                  <span className="bg-white dark:bg-zinc-800/60 px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-300 font-semibold">
+                     Behavior: {r.behaviorRating || 5}/5
+                  </span>
+                  <span className="bg-white dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-300 px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-700/60 font-bold">
+                     Pricing: {r.pricingRating || 5}/5
+                  </span>
+                </div>
+
+                {r.reviewComment ? (
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 italic leading-relaxed pt-0.5">
+                    &ldquo;{r.reviewComment}&rdquo;
+                  </p>
+                ) : (
+                  <p className="text-xs text-zinc-400 italic">
+                    (Rating submitted with verified PACS completion)
+                  </p>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="pt-2 flex justify-end">
+          <button onClick={onClose} className="btn-secondary text-xs py-2 px-4 font-semibold">Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+export default function MarketplacePage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [workers, setWorkers] = useState<WorkerProfile[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [society, setSociety] = useState<Society | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [activeTab, setActiveTab] = useState<'workers' | 'bookings'>('workers');
+  const [selectedTrade, setSelectedTrade] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeBookingService, setActiveBookingService] = useState<Service | null>(null);
-  const [activePaymentBooking, setActivePaymentBooking] = useState<Booking | null>(null);
+
+  // Modals & Expanded Reviews State
   const [authModal, setAuthModal] = useState<'signin' | 'signup' | null>(null);
-  const [activeTab, setActiveTab] = useState<'services' | 'bookings'>('services');
+  const [selectedWorkerForBooking, setSelectedWorkerForBooking] = useState<WorkerProfile | null>(null);
+  const [activePaymentBooking, setActivePaymentBooking] = useState<Booking | null>(null);
+  const [expandedWorkerId, setExpandedWorkerId] = useState<string | null>(null);
+  const [selectedWorkerForReviewsModal, setSelectedWorkerForReviewsModal] = useState<WorkerProfile | null>(null);
 
-  // Real-time synchronization
-  const refreshData = useCallback(async (user: User | null) => {
+  const TRADES_LIST = ['All', 'Electrical', 'Plumbing', 'Carpentry', 'Cleaning', 'Appliance Fix'];
+
+  const refreshData = async (user?: User | null) => {
     await dataService.syncCloud();
-    const svcs = dataService.getServices();
-    setServices(svcs || []);
+    const wData = dataService.getWorkers();
+    const sData = dataService.getServices();
+    const soc = dataService.getSociety();
 
-    if (user) {
-      const allBookings = dataService.getBookings();
-      setBookings(allBookings.filter((b) => b.customerId === user.id));
-    } else {
-      setBookings([]);
+    setWorkers(wData);
+    setServices(sData);
+    setSociety(soc);
+
+    if (user && user.role === 'CUSTOMER') {
+      const allB = dataService.getBookings();
+      setBookings(allB.filter((b) => b.customerId === user.id));
     }
-  }, []);
+  };
 
   useEffect(() => {
-    const stored = getSessionUser();
-    if (stored) {
-      if (stored.role === 'WORKER') {
-        router.replace('/worker');
-        return;
+    const raw = typeof window !== 'undefined' ? localStorage.getItem('sahakargig_user') : null;
+    if (raw) {
+      try {
+        const u = JSON.parse(raw);
+        setCurrentUser(u);
+        refreshData(u);
+      } catch {
+        refreshData(null);
       }
-      setCurrentUser(stored);
-      refreshData(stored);
     } else {
       refreshData(null);
     }
-  }, [router, refreshData]);
+  }, []);
 
-  // Live polling (2.5s) for instant real-time synchronization
+  // Real-time Event Updates & Polling
   useEffect(() => {
-    if (!currentUser) return;
+    const handleStateUpdated = () => {
+      refreshData(currentUser);
+    };
+    window.addEventListener('sahakar_state_updated', handleStateUpdated);
+
     const interval = setInterval(() => {
       refreshData(currentUser);
     }, 2500);
-    return () => clearInterval(interval);
-  }, [currentUser, refreshData]);
+
+    return () => {
+      window.removeEventListener('sahakar_state_updated', handleStateUpdated);
+      clearInterval(interval);
+    };
+  }, [currentUser]);
+
+  function handleSignOut() {
+    localStorage.removeItem('sahakargig_user');
+    setCurrentUser(null);
+    setBookings([]);
+    setActiveTab('workers');
+  }
 
   function handleAuthSuccess(user: User) {
-    setSessionUser(user);
+    localStorage.setItem('sahakargig_user', JSON.stringify(user));
+    setCurrentUser(user);
     setAuthModal(null);
     if (user.role === 'WORKER') {
       router.push('/worker');
     } else {
-      setCurrentUser(user);
       refreshData(user);
     }
   }
 
-  function handleSignOut() {
-    setSessionUser(null);
-    setCurrentUser(null);
-    setBookings([]);
+  function getTradeBasePrice(tradeName: string): number {
+    const found = services.find((s) => s.category.toLowerCase() === tradeName.toLowerCase() || s.name.toLowerCase().includes(tradeName.toLowerCase()));
+    return found?.basePrice || found?.price || 150;
   }
 
-  // 1-Click Post-Service Digital Payment Confirmation
-  async function handleConfirmDigitalPayment() {
-    if (!activePaymentBooking) return;
-    dataService.updateBooking(activePaymentBooking.id, {
-      status: 'COMPLETED_PAID_DIGITALLY',
-      paymentStatus: 'PAID_DIGITAL',
-      paymentMethod: 'DIGITAL',
-      paidAt: new Date().toISOString(),
-      completedAt: new Date().toISOString(),
-    });
-    refreshData(currentUser);
-  }
+  // Filter Active, Non-Suspended, KYC Verified Artisans
+  const eligibleWorkers = workers.filter((w) => {
+    const isSuspended = w.accountStatus === 'SUSPENDED_UNPAID_DUES' || (w.outstandingDues || 0) >= 300;
+    if (isSuspended) return false;
 
-  const categories = ['All', ...Array.from(new Set(services.map((s) => s.category)))];
-  const filteredServices = services.filter((s) => {
-    const matchesCat = selectedCategory === 'All' || s.category === selectedCategory;
+    const matchesTrade = selectedTrade === 'All' || w.trade.toLowerCase() === selectedTrade.toLowerCase();
     const matchesSearch =
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesSearch;
+      !searchQuery ||
+      w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      w.trade.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      w.skills.some((sk) => sk.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    return matchesTrade && matchesSearch;
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      {/* ─── Top Header (Strict Customer Context — No Worker Buttons) ────────── */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-          <div
-            className="flex items-center gap-2.5 cursor-pointer"
-            onClick={() => setActiveTab('services')}
-          >
-            <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/20">
-              <Leaf className="w-5 h-5" />
+    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
+      {/* ─── Top Universal PACS Authority Helpline Banner ─── */}
+      <div className="bg-zinc-950 dark:bg-black text-zinc-400 text-xs font-medium py-1.5 px-4 border-b border-zinc-800/60">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left">
+          <div className="flex items-center gap-1.5 text-zinc-300">
+            <Shield className="w-3.5 h-3.5 text-zinc-500" />
+            <span>Primary Cooperative Services Society Desk</span>
+          </div>
+          <div className="flex items-center gap-1 text-zinc-500 font-mono text-[11px]">
+            <Phone className="w-3 h-3 text-zinc-600" />
+            <span>Helpline: <strong className="text-zinc-300">+91 1800-425-2667</strong> (Toll Free)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Top Header ──────────────────────────────────────────────────────── */}
+      <header className="nav-sticky dark:border-zinc-800/60 border-zinc-200">
+        <div className="max-w-6xl mx-auto px-4 h-15 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-zinc-950 dark:bg-zinc-100 flex items-center justify-center shadow-sm">
+              <Leaf className="w-5 h-5 text-white dark:text-zinc-950" />
             </div>
             <div>
-              <span className="font-black text-slate-900 text-xl tracking-tight leading-none block">
+              <span className="font-black text-zinc-900 dark:text-zinc-50 text-xl tracking-tight leading-none block">
                 SahakarGig
               </span>
-              <span className="text-[11px] font-medium text-slate-500 leading-none">
-                Primary Cooperative Services Network
+              <span className="text-[11px] font-medium text-zinc-500 leading-none">
+                Direct Cooperative Artisan Discovery
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             {currentUser ? (
               <div className="flex items-center gap-3">
                 <div className="hidden sm:block text-right">
-                  <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{currentUser.name}</div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400">Resident Customer</div>
+                  <div className="text-xs font-bold text-zinc-900 dark:text-zinc-50">{currentUser.name}</div>
+                  <div className="text-[10px] text-zinc-500 font-semibold">
+                    {currentUser.role === 'WORKER' ? 'Artisan Partner' : 'Resident Customer'}
+                  </div>
                 </div>
+                {currentUser.role === 'WORKER' && (
+                  <button
+                    onClick={() => router.push('/worker')}
+                    className="btn-primary py-1.5 px-3 text-xs font-semibold"
+                  >
+                    Artisan Desk
+                  </button>
+                )}
                 <button
                   onClick={handleSignOut}
-                  className="btn-secondary py-1.5 px-3 text-xs font-bold"
-                  title="Sign Out"
+                  className="btn-secondary py-1.5 px-3 text-xs font-semibold"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Sign Out</span>
+                  <LogOut className="w-3.5 h-3.5" /> Sign Out
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setAuthModal('signin')}
-                  className="btn-secondary text-xs py-2 px-3.5 font-bold"
+                  className="btn-secondary text-xs py-2 px-3.5 font-semibold"
                 >
                   <LogIn className="w-3.5 h-3.5" /> Sign In
                 </button>
                 <button
                   onClick={() => setAuthModal('signup')}
-                  className="btn-primary text-xs py-2 px-4 font-bold shadow-sm"
+                  className="btn-primary text-xs py-2 px-4 font-semibold"
                 >
                   <UserPlus className="w-3.5 h-3.5" /> Get Started
                 </button>
@@ -919,44 +1099,48 @@ export default function CustomerPortal() {
         </div>
       </header>
 
-      {/* ─── Main Content ───────────────────────────────────────────────────── */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+      {/* ─── Main Content ────────────────────────────────────────────────────── */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 space-y-10">
         {!currentUser ? (
-          /* Unauthenticated Landing */
-          <div className="space-y-12">
+          /* ── Unauthenticated Landing Page Hero ── */
+          <div className="space-y-12 animate-fadein">
             <section className="text-center py-10 sm:py-16 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
-                <Shield className="w-3.5 h-3.5" /> 100% Post-Service Payment Guarantee
-              </div>
-
-              <h1 className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-slate-100 tracking-tight max-w-3xl mx-auto leading-[1.15]">
+              <h1 className="text-4xl sm:text-5xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight max-w-3xl mx-auto leading-[1.1]">
                 Book Certified Local Artisans.{' '}
-                <span className="text-blue-600 dark:text-blue-400">Pay Only After Work is Done.</span>
+                <span className="text-zinc-500 dark:text-zinc-400">Pay Only After Work is Done.</span>
               </h1>
 
-              <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+              <p className="text-zinc-500 dark:text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
                 Connect directly with certified tradespeople operated by your Primary Cooperative Services Society. Zero pre-payment required — settle digitally or via cash on site after service completion.
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                 <button
                   onClick={() => setAuthModal('signup')}
-                  className="btn-primary py-3 px-8 text-sm font-bold shadow-md"
+                  className="btn-primary py-3 px-8 text-sm font-semibold flex items-center gap-2"
                 >
-                  <UserPlus className="w-4 h-4" /> Get Started Now
+                  <UserPlus className="w-4 h-4" />
+                  <span>Get Started Now</span>
                 </button>
                 <button
                   onClick={() => setAuthModal('signin')}
-                  className="btn-secondary py-3 px-6 text-sm font-bold"
+                  className="btn-secondary py-3 px-6 text-sm font-semibold flex items-center gap-2"
                 >
-                  <LogIn className="w-4 h-4" /> Member Sign In
+                  <LogIn className="w-4 h-4" />
+                  <span>Member Sign In</span>
                 </button>
               </div>
             </section>
 
-            {/* Service Directory */}
+            {/* Standard Cluster Services Matrix */}
             <section className="space-y-4">
-              <h2 className="text-xl font-black text-slate-900 dark:text-slate-100">Standard Cluster Services</h2>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight">Standard Cluster Services</h2>
+                  <p className="text-xs text-zinc-500">Fixed rate cooperative services approved for your local district</p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {services.map((svc) => (
                   <div
@@ -966,21 +1150,23 @@ export default function CustomerPortal() {
                   >
                     <div>
                       <div className="flex items-start justify-between mb-3">
-                        <span className="text-3xl">{svc.icon}</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-100 dark:border-blue-800">
+                        <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700/60 font-bold text-xs text-zinc-700 dark:text-zinc-300">
+    <Wrench className="w-5 h-5 text-zinc-800 dark:text-zinc-200" />
+  </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-700/60">
                           {svc.category}
                         </span>
                       </div>
-                      <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base mb-1">{svc.name}</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">{svc.description}</p>
+                      <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base mb-1 tracking-tight">{svc.name}</h3>
+                      <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2">{svc.description}</p>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between">
                       <div>
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-semibold uppercase">Cluster Rate</span>
-                        <span className="text-base font-black text-blue-600 dark:text-blue-400">{formatCurrency(svc.price)}</span>
+                        <span className="text-[10px] text-zinc-400 block font-semibold uppercase tracking-wider">Cluster Base Rate</span>
+                        <span className="text-base font-black text-zinc-900 dark:text-zinc-50 tabular-nums">{formatCurrency(svc.basePrice || svc.price)}</span>
                       </div>
-                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                      <span className="text-xs font-semibold text-zinc-500 flex items-center gap-1">
                         Book Now <ChevronRight className="w-3.5 h-3.5" />
                       </span>
                     </div>
@@ -990,217 +1176,406 @@ export default function CustomerPortal() {
             </section>
           </div>
         ) : (
-          /* Authenticated Customer View */
+          /* ── Authenticated Customer Dashboard ── */
           <div className="space-y-6">
-            {/* Tabs */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+            {/* Worker Role Info Banner */}
+            {currentUser?.role === 'WORKER' && (
+              <div className="p-4 rounded-xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadein">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center font-bold text-xs shrink-0">
+                    <Wrench className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-zinc-900 dark:text-zinc-50 text-xs">
+                      Artisan Account Active: {currentUser.name} ({currentUser.trade || 'Technician'})
+                    </div>
+                    <div className="text-[11px] text-zinc-500">
+                      Service booking requests can only be placed from a Resident Customer account. To manage incoming jobs, use your Artisan Desk.
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => router.push('/worker')}
+                  className="btn-primary text-xs py-2 px-4 font-semibold whitespace-nowrap self-start sm:self-auto"
+                >
+                  Go to Artisan Desk →
+                </button>
+              </div>
+            )}
+
+            {/* Navigation Tabs for Customers */}
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-200 dark:border-zinc-800/60">
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => setActiveTab('services')}
-                  className={`pb-2 text-sm font-bold border-b-2 transition-all ${
-                    activeTab === 'services'
-                      ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                  onClick={() => setActiveTab('workers')}
+                  className={`pb-2 text-sm font-semibold border-b-2 transition-all ${
+                    activeTab === 'workers'
+                      ? 'border-zinc-900 dark:border-zinc-50 text-zinc-900 dark:text-zinc-50'
+                      : 'border-transparent text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
                   }`}
                 >
-                  Browse Services
+                  Discover Verified Artisans
                 </button>
-                <button
-                  onClick={() => setActiveTab('bookings')}
-                  className={`pb-2 text-sm font-bold border-b-2 transition-all flex items-center gap-1.5 ${
-                    activeTab === 'bookings'
-                      ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                  }`}
-                >
-                  My Live Orders / History
-                  {bookings.length > 0 && (
-                    <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-bold">
-                      {bookings.length}
-                    </span>
-                  )}
-                </button>
+                {currentUser?.role !== 'WORKER' && (
+                  <button
+                    onClick={() => setActiveTab('bookings')}
+                    className={`pb-2 text-sm font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
+                      activeTab === 'bookings'
+                        ? 'border-zinc-900 dark:border-zinc-50 text-zinc-900 dark:text-zinc-50'
+                        : 'border-transparent text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    My Live Orders / History
+                    {bookings.length > 0 && (
+                      <span className="w-4 h-4 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 text-[10px] flex items-center justify-center font-bold tabular-nums">
+                        {bookings.length}
+                      </span>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 
-            {activeTab === 'services' ? (
-              <div className="space-y-5">
-                {/* Search & Categories */}
+            {activeTab === 'workers' ? (
+              <div className="space-y-6">
+                {/* Search Bar and Trade Category Filters */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
-                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                     <input
                       type="text"
                       className="form-input pl-10"
-                      placeholder="Search electrical, plumbing, carpentry, cleaning, repairs…"
+                      placeholder="Search electricians, plumbers, carpenters, technicians by name or skill…"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
 
                   <div className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-                    {categories.map((cat) => (
+                    {TRADES_LIST.map((tr) => (
                       <button
-                        key={cat}
-                        onClick={() => setSelectedCategory(cat)}
-                        className={`px-3 py-2 rounded-lg text-xs font-bold border whitespace-nowrap transition-all ${
-                          selectedCategory === cat
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                        key={tr}
+                        onClick={() => setSelectedTrade(tr)}
+                        className={`px-3 py-2 rounded-lg text-xs font-semibold border whitespace-nowrap transition-all ${
+                          selectedTrade === tr
+                            ? 'bg-zinc-950 dark:bg-zinc-50 text-white dark:text-zinc-950 border-zinc-950 dark:border-zinc-50'
+                            : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700/60 hover:bg-zinc-50 dark:hover:bg-zinc-800'
                         }`}
                       >
-                        {cat}
+                        {tr}
                       </button>
                     ))}
                   </div>
                 </div>
-
-                {/* Service Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {filteredServices.map((svc) => (
-                    <div
-                      key={svc.id}
-                      className="card-hover p-5 flex flex-col justify-between"
-                      onClick={() => setActiveBookingService(svc)}
-                    >
-                      <div>
-                        <div className="flex items-start justify-between mb-3">
-                          <span className="text-3xl">{svc.icon}</span>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-100 dark:border-blue-800">
-                            {svc.category}
-                          </span>
-                        </div>
-                        <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base mb-1">{svc.name}</h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">{svc.description}</p>
+                {/* Trade Info & Base Rate Header */}
+                {selectedTrade !== 'All' && (
+                  <div className="p-4 rounded-xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center font-bold text-sm">
+                        <Wrench className="w-4 h-4" />
                       </div>
-
-                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <div>
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-semibold uppercase">Fixed Rate</span>
-                          <span className="text-base font-black text-blue-600 dark:text-blue-400">{formatCurrency(svc.price)}</span>
-                        </div>
-                        <button className="btn-primary text-xs py-1.5 px-3 font-bold">
-                          Book Service
-                        </button>
+                      <div>
+                        <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">{selectedTrade} Trade Category</h2>
+                        <p className="text-xs text-zinc-500">PACS Approved Diagnostic & Initial Work Rate</p>
                       </div>
                     </div>
-                  ))}
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase font-bold text-zinc-400 block tracking-wider">Standard Base Price</span>
+                      <span className="text-lg font-black text-zinc-900 dark:text-zinc-50 tabular-nums">
+                        {formatCurrency(getTradeBasePrice(selectedTrade))}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Artisans Discovery Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {eligibleWorkers.length === 0 ? (
+                    <div className="col-span-full card p-12 text-center space-y-3">
+                      <Wrench className="w-10 h-10 text-zinc-300 dark:text-zinc-700 mx-auto" />
+                      <div className="font-bold text-zinc-700 dark:text-zinc-300 tracking-tight">No active verified artisans found</div>
+                      <p className="text-xs text-zinc-400">Try selecting a different trade category or search query.</p>
+                    </div>
+                  ) : (
+                    eligibleWorkers.map((w) => {
+                      const basePrice = getTradeBasePrice(w.trade);
+                      const qualityScore = (w.qualityRating || 4.9).toFixed(1);
+                      const behaviorScore = (w.behaviorRating || 4.8).toFixed(1);
+                      const fairPercentage = w.fairPricingPercentage || 96;
+
+                      return (
+                        <div key={w.id} className="card-hover p-5 flex flex-col justify-between space-y-4">
+                          <div>
+                            {/* Header with Avatar & Trade Badge */}
+                            <div className="flex items-start justify-between gap-2 mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center font-black text-base shadow-sm">
+                                  {w.name.charAt(0)}
+                                </div>
+                                <div>
+                                  <h3 className="font-black text-zinc-900 dark:text-zinc-50 text-base leading-tight tracking-tight">
+                                    {w.name}
+                                  </h3>
+                                  <div className="text-xs font-medium text-zinc-500 flex items-center gap-1 mt-0.5">
+                                    <MapPin className="w-3 h-3 text-zinc-400" />
+                                    <span>{w.localSociety || 'Primary Cooperative Society'}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-700/60 shrink-0">
+                                {w.trade}
+                              </span>
+                            </div>
+
+                            {/* Bio & Skills */}
+                            <p className="text-xs text-zinc-500 leading-relaxed mb-3 line-clamp-2">
+                              {w.bio}
+                            </p>
+
+                            <div className="flex flex-wrap gap-1 mb-4">
+                              {w.skills.slice(0, 3).map((sk) => (
+                                <span key={sk} className="text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-md font-medium">
+                                  {sk}
+                                </span>
+                              ))}
+                            </div>
+
+                            {/* 3-Factor Trust & Performance Metrics Badges */}
+                            <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-2 text-xs">
+                              <div className="flex items-center justify-between">
+                                <span className="text-zinc-500 flex items-center gap-1">
+                                   Quality Score:
+                                </span>
+                                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">{qualityScore} / 5.0</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-zinc-500 flex items-center gap-1">
+                                   Behavior & Punctuality:
+                                </span>
+                                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">{behaviorScore} / 5.0</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-zinc-500 flex items-center gap-1">
+                                   Pricing Fairness:
+                                </span>
+                                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
+                                  {(w.pricingRating || 4.9).toFixed(1)} / 5.0 ({fairPercentage}%)
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Verified Resident Reviews Snippet & Expand Action */}
+                            {(() => {
+                              const workerReviews = dataService.getWorkerReviews(w.userId);
+                              const topReview = workerReviews[0];
+                              const isExpanded = expandedWorkerId === w.id;
+
+                              return (
+                                <div className="mt-3 p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-2 text-xs">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-zinc-50">
+                                      <MessageSquare className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                                      <span>Resident Reviews</span>
+                                      <span className="text-[10px] text-zinc-400 font-semibold">({workerReviews.length})</span>
+                                    </div>
+
+                                    {workerReviews.length > 0 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => setExpandedWorkerId(isExpanded ? null : w.id)}
+                                        className="text-[11px] font-semibold text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline flex items-center gap-0.5 transition-colors"
+                                      >
+                                        <span>{isExpanded ? 'Hide' : 'Expand'}</span>
+                                        {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  {topReview ? (
+                                    <div className="space-y-1">
+                                      <p className="text-zinc-500 italic text-[11px] leading-relaxed line-clamp-2">
+                                        &ldquo;{topReview.reviewComment || 'Great technical service and transparent PACS billing!'}&rdquo;
+                                      </p>
+                                      <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5 border-t border-zinc-200/50 dark:border-zinc-700/30">
+                                        <span className="font-semibold text-zinc-500">
+                                          — {topReview.customerName || 'Verified Resident'}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() => setSelectedWorkerForReviewsModal(w)}
+                                          className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 font-semibold hover:underline transition-colors"
+                                        >
+                                          All Reviews ({workerReviews.length}) ↗
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-[11px] text-zinc-500 flex items-center justify-between">
+                                      <span>PACS Verified Artisan</span>
+                                      <span className="text-[10px] text-zinc-500 font-semibold">Quality Audited</span>
+                                    </div>
+                                  )}
+
+                                  {/* Inline Expandable Full Typed Reviews List */}
+                                  {isExpanded && workerReviews.length > 0 && (
+                                    <div className="pt-2 mt-2 border-t border-zinc-200 dark:border-zinc-700/60 space-y-2 max-h-52 overflow-y-auto pr-1 animate-fadein">
+                                      {workerReviews.map((r) => (
+                                        <div key={r.id} className="p-2.5 rounded-lg bg-white dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/60 space-y-1 text-xs">
+                                          <div className="flex items-center justify-between text-[10px]">
+                                            <span className="font-bold text-zinc-800 dark:text-zinc-200">
+                                              {r.customerName || 'Verified Resident'}
+                                            </span>
+                                            <span className="text-zinc-400">
+                                              {r.reviewedAt ? formatDate(r.reviewedAt) : 'Recent'}
+                                            </span>
+                                          </div>
+                                          <div className="flex flex-wrap gap-1 text-[9px]">
+                                            <span className="bg-zinc-100 dark:bg-zinc-700/60 px-1.5 py-0.5 rounded text-zinc-600 dark:text-zinc-300 font-semibold">
+                                               Skill: {r.qualityRating || 5}/5
+                                            </span>
+                                            <span className="bg-zinc-100 dark:bg-zinc-700/60 px-1.5 py-0.5 rounded text-zinc-600 dark:text-zinc-300 font-semibold">
+                                               Behavior: {r.behaviorRating || 5}/5
+                                            </span>
+                                            <span className="bg-zinc-100 dark:bg-zinc-700/60 text-zinc-600 dark:text-zinc-300 px-1.5 py-0.5 rounded font-bold">
+                                               Pricing: {r.pricingRating || 5}/5
+                                            </span>
+                                          </div>
+                                          {r.reviewComment && (
+                                            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 italic pt-0.5">
+                                              &ldquo;{r.reviewComment}&rdquo;
+                                            </p>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
+
+                          {/* Base Rate & Booking Action */}
+                          <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between">
+                            <div>
+                              <span className="text-[10px] text-zinc-400 block font-semibold uppercase tracking-wider">
+                                Base Rate
+                              </span>
+                              <span className="text-base font-black text-zinc-900 dark:text-zinc-50 tabular-nums">
+                                {formatCurrency(basePrice)}
+                              </span>
+                            </div>
+
+                            {currentUser?.role === 'WORKER' ? (
+                              <button
+                                onClick={() => router.push('/worker')}
+                                className="btn-secondary text-xs py-1.5 px-3 font-semibold"
+                                title="Worker accounts cannot book services. Switch to customer account to book."
+                              >
+                                Artisan View
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  if (!currentUser) {
+                                    setAuthModal('signin');
+                                  } else {
+                                    setSelectedWorkerForBooking(w);
+                                  }
+                                }}
+                                className="btn-primary text-xs py-2 px-4 font-semibold"
+                              >
+                                Book Worker
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             ) : (
-              /* Customer My Live Orders / History */
+              /* My Bookings View */
               <div className="space-y-4">
-                {/* Unified PACS Grievance & Authority Assistance Banner */}
-                <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800/80 rounded-2xl text-xs text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
-                      <Phone className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-amber-950 dark:text-amber-200 text-sm">PACS Grievance & Service Assistance Helpline</div>
-                      <div className="text-amber-800 dark:text-amber-300/90 text-xs">Have an issue with any service or artisan? Contact Primary Cooperative Authority directly:</div>
-                    </div>
-                  </div>
-                  <a
-                    href="tel:1234567890"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-xl font-black text-xs transition-all shadow-md shadow-amber-600/20 shrink-0 self-start sm:self-auto"
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>+91 1234567890</span>
-                  </a>
-                </div>
-
                 {bookings.length === 0 ? (
                   <div className="card p-12 text-center space-y-3">
-                    <ShoppingBag className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
-                    <div className="font-bold text-slate-700 dark:text-slate-200">No bookings placed yet</div>
-                    <p className="text-xs text-slate-400 dark:text-slate-500">Choose a service from the catalogue to book with zero pre-payment.</p>
-                    <button onClick={() => setActiveTab('services')} className="btn-primary text-xs py-2 px-4 font-bold">
-                      Browse Services
-                    </button>
+                    <CalendarDays className="w-10 h-10 text-zinc-300 dark:text-zinc-700 mx-auto" />
+                    <div className="font-bold text-zinc-700 dark:text-zinc-300 tracking-tight">No active bookings</div>
+                    <p className="text-xs text-zinc-400">Pick an artisan from the discovery tab to make a booking.</p>
                   </div>
                 ) : (
                   bookings.map((bk) => {
-                    const isCompleted =
-                      bk.status === 'COMPLETED_PAID_DIGITALLY' ||
-                      bk.status === 'COMPLETED_PAID_CASH' ||
-                      bk.status === 'COMPLETED';
+                    const isCompleted = ['COMPLETED_PAID_DIGITALLY', 'COMPLETED_PAID_CASH', 'COMPLETED'].includes(bk.status);
 
                     return (
                       <div key={bk.id} className="card p-5 space-y-4">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 dark:text-slate-100 text-base">{bk.serviceName}</span>
-                              <span className={getBadgeClass(bk.status)}>{getStatusReadableLabel(bk.status)}</span>
-                            </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
+                            <div className="font-bold text-zinc-900 dark:text-zinc-50 text-base tracking-tight">{bk.serviceName}</div>
+                            <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1.5">
                               <CalendarDays className="w-3.5 h-3.5" /> Scheduled: {formatDateTime(bk.scheduledDate)}
                             </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                            <div className="text-xs text-zinc-500 flex items-center gap-1.5 mt-0.5">
                               <MapPin className="w-3.5 h-3.5" /> Location: {bk.address}
                             </div>
                           </div>
 
                           <div className="text-right">
-                            <div className="text-base font-black text-blue-600 dark:text-blue-400">{formatCurrency(bk.totalAmount)}</div>
-                            <div className={`text-[11px] font-bold ${
-                              isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
-                            }`}>
-                              {isCompleted
-                                ? `✓ Settled (${bk.paymentMethod || 'Direct'})`
-                                : 'Payment Due on Completion'}
+                            <span className={getBadgeClass(bk.status)}>
+                              {getStatusReadableLabel(bk.status)}
+                            </span>
+                            <div className="text-sm font-black text-zinc-900 dark:text-zinc-50 mt-1 tabular-nums">
+                              {formatCurrency(bk.totalAmount)}
                             </div>
                           </div>
                         </div>
 
-                        {/* Reported Problem Description Box */}
                         {bk.problemDescription && (
-                          <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs space-y-1">
-                            <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5 uppercase tracking-wider">
-                              <Wrench className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                          <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs">
+                            <div className="text-[10px] uppercase font-bold text-zinc-400 mb-0.5 tracking-wider">
                               Reported Problem Description
                             </div>
-                            <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+                            <p className="text-zinc-800 dark:text-zinc-200 leading-relaxed font-medium">
                               &quot;{bk.problemDescription}&quot;
                             </p>
                           </div>
                         )}
 
-                        {/* In-Progress Notification (Step 1 -> 2) */}
+                        {/* In-Progress Notification */}
                         {bk.status === 'IN_PROGRESS' && (
-                          <div className="p-3.5 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/80 rounded-xl text-xs text-blue-900 dark:text-blue-200 flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                          <div className="p-3.5 bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-zinc-500 shrink-0" />
                             <span>
-                              Artisan <strong className="text-slate-900 dark:text-slate-100">{bk.workerName}</strong> has accepted your request and is performing the service. No payment is required until work is completed.
+                              Artisan <strong className="text-zinc-900 dark:text-zinc-50">{bk.workerName}</strong> has accepted your request and is performing the service. No payment is required until work is completed.
                             </span>
                           </div>
                         )}
 
-                        {/* Post-Service Payment Card (Step 3 Option A / Option B) */}
+                        {/* Post-Service Payment Card */}
                         {bk.status === 'AWAITING_PAYMENT' && (
-                          <div className="p-4 rounded-xl bg-gradient-to-r from-violet-50 to-blue-50 dark:from-violet-950/40 dark:to-blue-950/40 border border-violet-200 dark:border-violet-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadein">
-                            <div className="text-xs text-violet-950 dark:text-violet-200">
-                              <div className="font-bold text-sm flex items-center gap-1.5 text-slate-900 dark:text-slate-100">
-                                <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                          <div className="p-4 rounded-xl bg-zinc-950 dark:bg-zinc-50 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadein">
+                            <div className="text-xs text-zinc-300 dark:text-zinc-700">
+                              <div className="font-bold text-sm flex items-center gap-1.5 text-white dark:text-zinc-950">
+                                <CheckCircle className="w-4 h-4" />
                                 Service Completed by {bk.workerName} • Pay {formatCurrency(bk.totalAmount)}
                               </div>
-                              <div className="text-violet-700 dark:text-violet-300 mt-0.5 font-medium">
+                              <div className="text-zinc-400 dark:text-zinc-600 mt-0.5 font-medium">
                                 Pay securely online right now, or hand cash directly to the artisan on site.
                               </div>
                             </div>
                             <button
                               onClick={() => setActivePaymentBooking(bk)}
-                              className="btn-primary text-xs py-2 px-5 font-bold shadow-md whitespace-nowrap"
+                              className="bg-white dark:bg-zinc-950 text-zinc-950 dark:text-zinc-50 border border-zinc-200 dark:border-zinc-700 text-xs py-2 px-5 font-semibold rounded-lg whitespace-nowrap hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors flex items-center gap-1.5"
                             >
                               <CreditCard className="w-3.5 h-3.5" /> Pay {formatCurrency(bk.totalAmount)} Online
                             </button>
                           </div>
                         )}
 
-                        {/* Completed State: Customer Review Card */}
+                        {/* Completed State: Customer Review Survey */}
                         {isCompleted && (
-                          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
                             <CustomerReviewCard
                               booking={bk}
                               onReviewSubmitted={() => refreshData(currentUser)}
@@ -1208,42 +1583,65 @@ export default function CustomerPortal() {
                           </div>
                         )}
 
-                        {/* Visual Progress Tracker */}
-                        <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3.5 border border-slate-100 dark:border-slate-800">
-                          <div className="grid grid-cols-4 gap-2 text-center text-[11px]">
-                            <div className={`p-2 rounded-lg font-bold ${
-                              ['PENDING_ACCEPTANCE', 'IN_PROGRESS', 'AWAITING_PAYMENT', 'COMPLETED_PAID_DIGITALLY', 'COMPLETED_PAID_CASH', 'COMPLETED'].includes(bk.status)
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                            }`}>
-                              1. Requested
+                        {/* Visual Progress Tracker with Distinct Phase Highlighting */}
+                        <div className="bg-zinc-50 dark:bg-zinc-900/60 rounded-xl p-3.5 border border-zinc-200 dark:border-zinc-700/60 space-y-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px]">
+                            {/* Step 1: Requested */}
+                            <div className={
+                              bk.status === 'PENDING_ACCEPTANCE'
+                                ? 'step-box step-active'
+                                : 'step-box step-completed'
+                            }>
+                              <span className="font-bold">1. Requested</span>
+                              <span className="text-[9px] opacity-80">{bk.status === 'PENDING_ACCEPTANCE' ? 'Waiting' : 'Accepted'}</span>
                             </div>
-                            <div className={`p-2 rounded-lg font-bold ${
-                              ['IN_PROGRESS', 'AWAITING_PAYMENT', 'COMPLETED_PAID_DIGITALLY', 'COMPLETED_PAID_CASH', 'COMPLETED'].includes(bk.status)
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                            }`}>
-                              2. In Progress
+
+                            {/* Step 2: In Progress */}
+                            <div className={
+                              bk.status === 'PENDING_ACCEPTANCE'
+                                ? 'step-box step-pending'
+                                : bk.status === 'IN_PROGRESS'
+                                ? 'step-box step-active'
+                                : 'step-box step-completed'
+                            }>
+                              <span className="font-bold">2. In Progress</span>
+                              <span className="text-[9px] opacity-80">
+                                {bk.status === 'PENDING_ACCEPTANCE' ? 'Pending' : bk.status === 'IN_PROGRESS' ? 'Active' : 'Finished'}
+                              </span>
                             </div>
-                            <div className={`p-2 rounded-lg font-bold ${
-                              ['AWAITING_PAYMENT', 'COMPLETED_PAID_DIGITALLY', 'COMPLETED_PAID_CASH', 'COMPLETED'].includes(bk.status)
-                                ? 'bg-violet-600 text-white'
-                                : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                            }`}>
-                              3. Work Done (Pay)
+
+                            {/* Step 3: Work Done (Pay) */}
+                            <div className={
+                              ['PENDING_ACCEPTANCE', 'IN_PROGRESS'].includes(bk.status)
+                                ? 'step-box step-pending'
+                                : bk.status === 'AWAITING_PAYMENT'
+                                ? 'step-box step-awaiting'
+                                : 'step-box step-completed'
+                            }>
+                              <span className="font-bold">3. {isCompleted ? 'Settled' : 'Pay Bill'}</span>
+                              <span className="text-[9px] opacity-80">
+                                {['PENDING_ACCEPTANCE', 'IN_PROGRESS'].includes(bk.status)
+                                  ? 'Upcoming'
+                                  : bk.status === 'AWAITING_PAYMENT'
+                                  ? 'Pay Now'
+                                  : 'Paid'}
+                              </span>
                             </div>
-                            <div className={`p-2 rounded-lg font-bold ${
+
+                            {/* Step 4: Settled & Rated */}
+                            <div className={
                               isCompleted
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                            }`}>
-                              4. Settled & Rated
+                                ? 'step-box step-completed'
+                                : 'step-box step-pending'
+                            }>
+                              <span className="font-bold">4. Rated</span>
+                              <span className="text-[9px] opacity-80">{isCompleted ? 'Closed' : 'Pending'}</span>
                             </div>
                           </div>
 
                           {bk.workerName && (
-                            <div className="mt-2.5 text-xs text-slate-600 dark:text-slate-400 text-center">
-                              Assigned Artisan: <strong className="text-slate-900 dark:text-slate-100">{bk.workerName}</strong>
+                            <div className="text-xs text-zinc-500 text-center pt-1">
+                              Assigned Artisan: <strong className="text-zinc-900 dark:text-zinc-50">{bk.workerName}</strong>
                             </div>
                           )}
                         </div>
@@ -1274,13 +1672,14 @@ export default function CustomerPortal() {
         />
       )}
 
-      {activeBookingService && currentUser && (
-        <ServiceBookingModal
-          service={activeBookingService}
+      {selectedWorkerForBooking && currentUser && (
+        <WorkerBookingModal
+          worker={selectedWorkerForBooking}
+          tradeBasePrice={getTradeBasePrice(selectedWorkerForBooking.trade)}
           user={currentUser}
-          onClose={() => setActiveBookingService(null)}
+          onClose={() => setSelectedWorkerForBooking(null)}
           onBookingSubmitted={() => {
-            setActiveBookingService(null);
+            setSelectedWorkerForBooking(null);
             setActiveTab('bookings');
             refreshData(currentUser);
           }}
@@ -1290,8 +1689,19 @@ export default function CustomerPortal() {
       {activePaymentBooking && (
         <PostServicePaymentModal
           booking={activePaymentBooking}
-          onConfirm={handleConfirmDigitalPayment}
+          onConfirm={async () => {
+            dataService.settleDigitalPayment(activePaymentBooking.id);
+            refreshData(currentUser);
+          }}
           onClose={() => setActivePaymentBooking(null)}
+        />
+      )}
+
+      {selectedWorkerForReviewsModal && (
+        <WorkerReviewsModal
+          worker={selectedWorkerForReviewsModal}
+          reviews={dataService.getWorkerReviews(selectedWorkerForReviewsModal.userId)}
+          onClose={() => setSelectedWorkerForReviewsModal(null)}
         />
       )}
 
@@ -1301,11 +1711,13 @@ export default function CustomerPortal() {
           <div>
             © 2026 <strong>SahakarGig</strong> — Primary Cooperative Services Platform.
           </div>
-          <div>
-            <a href="/admin/login" className="text-blue-600 font-semibold hover:underline flex items-center gap-1">
-              <Shield className="w-3 h-3" /> PACS Administration Console
-            </a>
-          </div>
+          {!currentUser && (
+            <div>
+              <a href="/admin/login" className="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1">
+                <Shield className="w-3 h-3" /> PACS Administration Console
+              </a>
+            </div>
+          )}
         </div>
       </footer>
     </div>
