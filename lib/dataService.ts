@@ -370,21 +370,30 @@ function setItem<T>(key: string, val: T): void {
   }
 }
 
-// ─── Multi-Device Cloud Real-Time Sync Engine ────────────────────────────────
+// ─── Cloud Firestore Real-Time Multi-Device Synchronization Engine ───────────
+const FIRESTORE_URL =
+  'https://firestore.googleapis.com/v1/projects/sahakarigig/databases/(default)/documents/app_state/main_store';
+
 async function syncFromCloud(): Promise<void> {
   if (typeof window === 'undefined') return;
-  const cloudUrl = localStorage.getItem(LS_KEY_CLOUD_DB) || DEFAULT_CLOUD_DB;
   try {
-    const res = await fetch(`${cloudUrl}/state.json`, { method: 'GET', cache: 'no-store' });
+    const res = await fetch(FIRESTORE_URL, { method: 'GET', cache: 'no-store' });
     if (res.ok) {
-      const data = await res.json();
-      if (data && typeof data === 'object') {
-        if (Array.isArray(data.users)) setItem(LS_KEY_USERS, data.users);
-        if (Array.isArray(data.workers)) setItem(LS_KEY_WORKERS, data.workers);
-        if (Array.isArray(data.services)) setItem(LS_KEY_SERVICES, data.services);
-        if (Array.isArray(data.bookings)) setItem(LS_KEY_BOOKINGS, data.bookings);
-        if (data.society && typeof data.society === 'object') setItem(LS_KEY_SOCIETY, data.society);
+      const doc = await res.json();
+      const rawPayload = doc?.fields?.payload?.stringValue;
+      if (rawPayload) {
+        const data = JSON.parse(rawPayload);
+        if (data && typeof data === 'object') {
+          if (Array.isArray(data.users)) setItem(LS_KEY_USERS, data.users);
+          if (Array.isArray(data.workers)) setItem(LS_KEY_WORKERS, data.workers);
+          if (Array.isArray(data.services)) setItem(LS_KEY_SERVICES, data.services);
+          if (Array.isArray(data.bookings)) setItem(LS_KEY_BOOKINGS, data.bookings);
+          if (data.society && typeof data.society === 'object') setItem(LS_KEY_SOCIETY, data.society);
+        }
       }
+    } else if (res.status === 404) {
+      // First time initialization: push seed data to Firestore
+      await pushToCloud();
     }
   } catch {
     // Cloud sync fails silently, falls back to local storage
@@ -393,19 +402,25 @@ async function syncFromCloud(): Promise<void> {
 
 async function pushToCloud(): Promise<void> {
   if (typeof window === 'undefined') return;
-  const cloudUrl = localStorage.getItem(LS_KEY_CLOUD_DB) || DEFAULT_CLOUD_DB;
   try {
-    const payload = {
+    const state = {
       users: getItem(LS_KEY_USERS, seedUsers),
       workers: getItem(LS_KEY_WORKERS, seedWorkers),
       services: getItem(LS_KEY_SERVICES, seedServices),
       bookings: getItem(LS_KEY_BOOKINGS, seedBookings),
       society: getItem(LS_KEY_SOCIETY, seedSociety),
     };
-    await fetch(`${cloudUrl}/state.json`, {
-      method: 'PUT',
+    const body = {
+      fields: {
+        payload: {
+          stringValue: JSON.stringify(state),
+        },
+      },
+    };
+    await fetch(FIRESTORE_URL, {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
   } catch {
     // Silent failover
@@ -415,7 +430,7 @@ async function pushToCloud(): Promise<void> {
 // Initialize background cloud sync on client boot
 if (typeof window !== 'undefined') {
   syncFromCloud();
-  setInterval(syncFromCloud, 2500);
+  setInterval(syncFromCloud, 2000);
 }
 
 // ─── Data Service Operations ──────────────────────────────────────────────────
