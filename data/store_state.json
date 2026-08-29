@@ -1,0 +1,250 @@
+{
+  "users": [
+    {
+      "id": "usr-cust-1",
+      "name": "Rajesh Verma",
+      "email": "rajesh@example.com",
+      "password": "password123",
+      "phone": "9823011223",
+      "role": "CUSTOMER",
+      "address": "Sector 4, Community Housing Block B",
+      "isVerified": true,
+      "createdAt": "2026-08-10T00:00:00.000Z"
+    },
+    {
+      "id": "usr-wkr-1",
+      "name": "Suresh Patil",
+      "email": "suresh@example.com",
+      "password": "password123",
+      "phone": "9845012345",
+      "role": "WORKER",
+      "trade": "Electrical",
+      "localSociety": "Primary Cooperative Services Society",
+      "kycDocName": "gov_id_suresh_patil.pdf",
+      "isVerified": true,
+      "createdAt": "2026-08-01T00:00:00.000Z"
+    },
+    {
+      "id": "usr-wkr-2",
+      "name": "Kavita Sharma",
+      "email": "kavita@example.com",
+      "password": "password123",
+      "phone": "9867023456",
+      "role": "WORKER",
+      "trade": "Plumbing",
+      "localSociety": "Primary Cooperative Services Society",
+      "kycDocName": "kyc_kavita_sharma.jpg",
+      "isVerified": true,
+      "createdAt": "2026-08-05T00:00:00.000Z"
+    },
+    {
+      "id": "usr-wkr-3",
+      "name": "Anil Deshmukh",
+      "email": "anil@example.com",
+      "password": "password123",
+      "phone": "9878034567",
+      "role": "WORKER",
+      "trade": "Carpentry",
+      "localSociety": "Primary Cooperative Services Society",
+      "kycDocName": "trade_cert_anil.pdf",
+      "isVerified": true,
+      "createdAt": "2026-08-15T00:00:00.000Z"
+    }
+  ],
+  "workers": [
+    {
+      "id": "wp-1",
+      "userId": "usr-wkr-1",
+      "name": "Suresh Patil",
+      "email": "suresh@example.com",
+      "phone": "9845012345",
+      "trade": "Electrical",
+      "localSociety": "Primary Cooperative Services Society",
+      "skills": [
+        "Wiring",
+        "Socket Repair",
+        "Fan Installation",
+        "MCB Fitting"
+      ],
+      "bio": "Certified electrician with 7+ years experience in domestic and commercial repairs.",
+      "isAvailable": true,
+      "kycStatus": "VERIFIED",
+      "kycDocName": "gov_id_suresh_patil.pdf",
+      "subscriptionPlan": "MONTHLY",
+      "passValidUntil": "2026-09-23T11:06:29.166Z",
+      "totalEarnings": 34200,
+      "digitalEarnings": 28400,
+      "cashEarnings": 5800,
+      "completedJobs": 86,
+      "rating": 4.8,
+      "ratingsCount": 42
+    },
+    {
+      "id": "wp-2",
+      "userId": "usr-wkr-2",
+      "name": "Kavita Sharma",
+      "email": "kavita@example.com",
+      "phone": "9867023456",
+      "trade": "Plumbing",
+      "localSociety": "Primary Cooperative Services Society",
+      "skills": [
+        "Tap Repair",
+        "Pipe Fitting",
+        "Drainage",
+        "Tank Cleaning"
+      ],
+      "bio": "Experienced plumbing technician trained in residential water distribution.",
+      "isAvailable": false,
+      "kycStatus": "VERIFIED",
+      "kycDocName": "kyc_kavita_sharma.jpg",
+      "subscriptionPlan": "MONTHLY",
+      "passValidUntil": "2026-08-24T11:06:29.166Z",
+      "totalEarnings": 21500,
+      "digitalEarnings": 17200,
+      "cashEarnings": 4300,
+      "completedJobs": 54,
+      "rating": 4.6,
+      "ratingsCount": 28
+    },
+    {
+      "id": "wp-3",
+      "userId": "usr-wkr-3",
+      "name": "Anil Deshmukh",
+      "email": "anil@example.com",
+      "phone": "9878034567",
+      "trade": "Carpentry",
+      "localSociety": "Primary Cooperative Services Society",
+      "skills": [
+        "Furniture Assembly",
+        "Door Fitting",
+        "Wood Polish",
+        "Shelving"
+      ],
+      "bio": "Skilled artisan for domestic carpentry, modular fixtures, and restoration.",
+      "isAvailable": true,
+      "kycStatus": "VERIFIED",
+      "kycDocName": "trade_cert_anil.pdf",
+      "subscriptionPlan": "YEARLY",
+      "passValidUntil": "2027-02-25T11:06:29.166Z",
+      "totalEarnings": 19800,
+      "digitalEarnings": 15600,
+      "cashEarnings": 4200,
+      "completedJobs": 42,
+      "rating": 4.7,
+      "ratingsCount": 19
+    }
+  ],
+  "services": [
+    {
+      "id": "svc-1",
+      "name": "Plumbing & Pipe Repair",
+      "category": "Plumbing",
+      "description": "Fix leaking taps, pipe washers, drainage clearance, and basic bathroom fixtures.",
+      "price": 199,
+      "icon": "🔧",
+      "duration": "30–45 min"
+    },
+    {
+      "id": "svc-2",
+      "name": "Electrical Socket & Switch Fix",
+      "category": "Electrical",
+      "description": "Repair faulty switches, MCB tripping issues, and household wiring checks.",
+      "price": 299,
+      "icon": "⚡",
+      "duration": "45–60 min"
+    },
+    {
+      "id": "svc-3",
+      "name": "Appliance Diagnosis & Repair",
+      "category": "Appliance Fix",
+      "description": "Inspection and diagnostics for washing machines, water coolers, pumps, and motors.",
+      "price": 499,
+      "icon": "🛠️",
+      "duration": "60–90 min"
+    },
+    {
+      "id": "svc-4",
+      "name": "Carpentry & Woodwork Fitting",
+      "category": "Carpentry",
+      "description": "Door hinges, handle fitting, shelf installation, and minor wooden repairs.",
+      "price": 399,
+      "icon": "🪚",
+      "duration": "60–90 min"
+    },
+    {
+      "id": "svc-5",
+      "name": "House Deep Cleaning & Sanitization",
+      "category": "Cleaning",
+      "description": "Intensive kitchen, bathroom, and household floor deep cleaning.",
+      "price": 699,
+      "icon": "🧹",
+      "duration": "2–3 hrs"
+    },
+    {
+      "id": "svc-6",
+      "name": "Ceiling Fan & Fixture Installation",
+      "category": "Electrical",
+      "description": "Complete ceiling/exhaust fan installation, regulator checks, and balancing.",
+      "price": 349,
+      "icon": "🔌",
+      "duration": "45–60 min"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "bk-101",
+      "customerId": "usr-cust-1",
+      "customerName": "Rajesh Verma",
+      "customerPhone": "9823011223",
+      "customerAddress": "Sector 4, Community Housing Block B",
+      "workerId": "usr-wkr-1",
+      "workerName": "Suresh Patil",
+      "serviceId": "svc-2",
+      "serviceName": "Electrical Socket & Switch Fix",
+      "problemDescription": "Living room main switchboard sparking and MCB trips when power points are turned on.",
+      "status": "IN_PROGRESS",
+      "scheduledDate": "2026-08-28T10:00:00Z",
+      "address": "Sector 4, Community Housing Block B",
+      "totalAmount": 299,
+      "paymentStatus": "PENDING",
+      "createdAt": "2026-08-27T08:30:00Z",
+      "acceptedAt": "2026-08-27T08:35:00Z"
+    },
+    {
+      "id": "bk-102",
+      "customerId": "usr-cust-1",
+      "customerName": "Rajesh Verma",
+      "customerPhone": "9823011223",
+      "customerAddress": "Sector 4, Community Housing Block B",
+      "workerId": "usr-wkr-3",
+      "workerName": "Anil Deshmukh",
+      "serviceId": "svc-4",
+      "serviceName": "Carpentry & Woodwork Fitting",
+      "problemDescription": "Main wooden front door hinges loose and scraping against the floor tiles.",
+      "status": "COMPLETED_PAID_DIGITALLY",
+      "scheduledDate": "2026-08-25T09:00:00Z",
+      "address": "Sector 4, Community Housing Block B",
+      "totalAmount": 399,
+      "paymentStatus": "PAID_DIGITAL",
+      "paymentMethod": "DIGITAL",
+      "createdAt": "2026-08-24T10:00:00Z",
+      "acceptedAt": "2026-08-24T10:05:00Z",
+      "settlementRequestedAt": "2026-08-24T11:00:00Z",
+      "paidAt": "2026-08-24T11:05:00Z",
+      "completedAt": "2026-08-24T11:05:00Z",
+      "reviewRating": 5,
+      "reviewComment": "Excellent wood fitting work and very polite artisan!",
+      "reviewedAt": "2026-08-24T12:00:00Z"
+    }
+  ],
+  "society": {
+    "id": "soc-1",
+    "name": "Primary Cooperative Services Society",
+    "registrationNo": "PACS/DCF/2021/089",
+    "district": "Central District Cluster",
+    "state": "State Cooperative Federation",
+    "welfareFundBalance": 52900,
+    "monthlyPassRate": 69,
+    "yearlyPassRate": 599
+  }
+}

@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ─────────────────────────────────────────────────────────────────
+
+enum Role {
+  CUSTOMER
+  WORKER
+  ADMIN
+}
+
+enum KycStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING_ACCEPTANCE
+  IN_PROGRESS
+  AWAITING_PAYMENT
+  COMPLETED_PAID_DIGITALLY
+  COMPLETED_PAID_CASH
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID_DIGITAL
+  PAID_CASH
+  PAID
+}
+
+// ─── Models ────────────────────────────────────────────────────────────────
+
+model Society {
+  id                 String   @id @default(cuid())
+  name               String
+  registrationNo     String   @unique
+  district           String
+  state              String
+  welfareFundBalance Float    @default(0)
+  monthlyPassRate    Float    @default(69)
+  yearlyPassRate     Float    @default(599)
+  createdAt          DateTime @default(now())
+  users              User[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  password     String   @default("password123")
+  phone        String?
+  role         Role     @default(CUSTOMER)
+  address      String?                   // address / village cluster
+  trade        String?                   // for workers: primary trade
+  localSociety String?                   // for workers: local society name
+  kycDocName   String?                   // for workers: uploaded document name
+  isVerified   Boolean  @default(true)
+  societyId    String?
+  society      Society? @relation(fields: [societyId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  workerProfile    WorkerProfile?
+  customerBookings Booking[]      @relation("CustomerBookings")
+  workerBookings   Booking[]      @relation("WorkerBookings")
+}
+
+model WorkerProfile {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills           String[]
+  bio              String    @default("")
+  isAvailable      Boolean   @default(true)
+  kycStatus        KycStatus @default(PENDING)
+  subscriptionPlan String?   @default("MONTHLY") // 'MONTHLY' | 'YEARLY'
+  passValidUntil   DateTime?
+  totalEarnings    Float     @default(0)
+  digitalEarnings  Float     @default(0)
+  cashEarnings     Float     @default(0)
+  completedJobs    Int       @default(0)
+  rating           Float     @default(5.0)
+  ratingsCount     Int       @default(0)
+  createdAt        DateTime  @default(now())
+}
+
+model Service {
+  id          String    @id @default(cuid())
+  name        String
+  category    String
+  description String
+  price       Float
+  icon        String    @default("🔧")
+  duration    String    @default("45–60 min")
+  createdAt   DateTime  @default(now())
+  bookings    Booking[]
+}
+
+model Booking {
+  id                 String        @id @default(cuid())
+  customerId         String
+  customer           User          @relation("CustomerBookings", fields: [customerId], references: [id])
+  workerId           String?
+  worker             User?         @relation("WorkerBookings", fields: [workerId], references: [id])
+  serviceId          String
+  service            Service       @relation(fields: [serviceId], references: [id])
+  serviceName        String
+  problemDescription String?
+  status             BookingStatus @default(PENDING_ACCEPTANCE)
+  scheduledDate      DateTime
+  address            String
+  totalAmount        Float
+  paymentStatus      PaymentStatus @default(PENDING)
+  createdAt          DateTime      @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  bookingId String   @unique
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+}
