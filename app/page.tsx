@@ -322,11 +322,13 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="form-label">Phone Number (10 Digits)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">+91</span>
+                <div className="flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+                  <span className="bg-slate-100 dark:bg-slate-800 px-3 py-2.5 border-r border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 select-none">
+                    +91
+                  </span>
                   <input
                     type="tel"
-                    className="form-input pl-11 font-mono"
+                    className="w-full bg-transparent px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none font-mono"
                     placeholder="Enter 10-digit mobile number"
                     value={phone}
                     onChange={(e) => {
@@ -612,11 +614,13 @@ function ServiceBookingModal({ service, user, onClose, onBookingSubmitted }: Ser
 
           <div>
             <label className="form-label">Contact Phone Number (For Worker Direct Call & WhatsApp)</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">+91</span>
+            <div className="flex items-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+              <span className="bg-slate-100 dark:bg-slate-800 px-3 py-2.5 border-r border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 select-none">
+                +91
+              </span>
               <input
                 type="tel"
-                className="form-input pl-11 font-mono"
+                className="w-full bg-transparent px-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none font-mono"
                 placeholder="Enter 10-digit mobile number"
                 value={phone}
                 onChange={(e) => {
