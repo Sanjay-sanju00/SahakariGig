@@ -81,24 +81,46 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
       {/* Action Buttons: Direct Call, WhatsApp & Navigation */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
         {/* Direct Phone Call Button */}
-        <a
-          href={`tel:${cleanDigits}`}
-          className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-blue-600/20"
-        >
-          <Phone className="w-3.5 h-3.5" />
-          <span>Call Now</span>
-        </a>
+        {cleanDigits ? (
+          <a
+            href={`tel:${cleanDigits}`}
+            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-blue-600/20"
+          >
+            <Phone className="w-3.5 h-3.5" />
+            <span>Call Now</span>
+          </a>
+        ) : (
+          <button
+            type="button"
+            disabled
+            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-slate-300 dark:bg-slate-800 text-slate-500 font-bold text-xs rounded-lg cursor-not-allowed opacity-70"
+          >
+            <Phone className="w-3.5 h-3.5" />
+            <span>No Phone</span>
+          </button>
+        )}
 
         {/* WhatsApp Chat Button */}
-        <a
-          href={waUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-emerald-600/20"
-        >
-          <MessageSquare className="w-3.5 h-3.5" />
-          <span>WhatsApp</span>
-        </a>
+        {cleanDigits ? (
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-emerald-600/20"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>WhatsApp</span>
+          </a>
+        ) : (
+          <button
+            type="button"
+            disabled
+            className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-slate-300 dark:bg-slate-800 text-slate-500 font-bold text-xs rounded-lg cursor-not-allowed opacity-70"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>No WhatsApp</span>
+          </button>
+        )}
 
         {/* Live GPS Directions */}
         <a

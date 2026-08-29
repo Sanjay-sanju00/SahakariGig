@@ -327,7 +327,7 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
                   <input
                     type="tel"
                     className="form-input pl-11 font-mono"
-                    placeholder="9876543210"
+                    placeholder="Enter 10-digit mobile number"
                     value={phone}
                     onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -617,7 +617,7 @@ function ServiceBookingModal({ service, user, onClose, onBookingSubmitted }: Ser
               <input
                 type="tel"
                 className="form-input pl-11 font-mono"
-                placeholder="e.g. 9845012345"
+                placeholder="Enter 10-digit mobile number"
                 value={phone}
                 onChange={(e) => {
                   const val = e.target.value.replace(/\D/g, '').slice(0, 10);
