@@ -355,7 +355,12 @@ function getItem<T>(key: string, defaultVal: T): T {
   if (typeof window === 'undefined') return defaultVal;
   try {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : defaultVal;
+    if (!raw) return defaultVal;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(defaultVal) && Array.isArray(parsed) && parsed.length === 0 && defaultVal.length > 0) {
+      return defaultVal;
+    }
+    return parsed;
   } catch {
     return defaultVal;
   }
@@ -384,11 +389,31 @@ async function syncFromCloud(): Promise<void> {
       if (rawPayload) {
         const data = JSON.parse(rawPayload);
         if (data && typeof data === 'object') {
-          if (Array.isArray(data.users)) setItem(LS_KEY_USERS, data.users);
-          if (Array.isArray(data.workers)) setItem(LS_KEY_WORKERS, data.workers);
-          if (Array.isArray(data.services)) setItem(LS_KEY_SERVICES, data.services);
-          if (Array.isArray(data.bookings)) setItem(LS_KEY_BOOKINGS, data.bookings);
-          if (data.society && typeof data.society === 'object') setItem(LS_KEY_SOCIETY, data.society);
+          if (Array.isArray(data.users) && data.users.length > 0) {
+            setItem(LS_KEY_USERS, data.users);
+          } else {
+            setItem(LS_KEY_USERS, seedUsers);
+          }
+
+          if (Array.isArray(data.workers) && data.workers.length > 0) {
+            setItem(LS_KEY_WORKERS, data.workers);
+          } else {
+            setItem(LS_KEY_WORKERS, seedWorkers);
+          }
+
+          if (Array.isArray(data.services) && data.services.length > 0) {
+            setItem(LS_KEY_SERVICES, data.services);
+          } else {
+            setItem(LS_KEY_SERVICES, seedServices);
+          }
+
+          if (Array.isArray(data.bookings)) {
+            setItem(LS_KEY_BOOKINGS, data.bookings.length > 0 ? data.bookings : seedBookings);
+          }
+
+          if (data.society && typeof data.society === 'object') {
+            setItem(LS_KEY_SOCIETY, data.society);
+          }
         }
       }
     } else if (res.status === 404) {
