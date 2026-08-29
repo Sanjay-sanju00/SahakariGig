@@ -156,6 +156,7 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
   const [role, setRole] = useState<'CUSTOMER' | 'WORKER'>('CUSTOMER');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [address, setAddress] = useState('');
   const [trade, setTrade] = useState('Plumbing');
@@ -181,8 +182,12 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !password.trim() || !address.trim()) {
-      setError('Please fill in all required fields.');
+    if (!name.trim() || !email.trim() || !password.trim() || !address.trim() || !phone.trim()) {
+      setError('Please fill in all required fields including your phone number.');
+      return;
+    }
+    if (phone.trim().length < 10) {
+      setError('Please enter a valid 10-digit mobile phone number.');
       return;
     }
     setError('');
@@ -201,7 +206,7 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
         name: name.trim(),
         email: email.trim().toLowerCase(),
         password: password.trim(),
-        phone: '9823011223',
+        phone: phone.trim(),
         role,
         address: address.trim(),
         trade: role === 'WORKER' ? trade : undefined,
@@ -309,6 +314,25 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
+                <label className="form-label">Phone Number (10 Digits)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">+91</span>
+                  <input
+                    type="tel"
+                    className="form-input pl-11 font-mono"
+                    placeholder="9876543210"
+                    value={phone}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setPhone(val);
+                      setError('');
+                    }}
+                    maxLength={10}
+                    required
+                  />
+                </div>
+              </div>
+              <div>
                 <label className="form-label">Create Password</label>
                 <input
                   type="password"
@@ -319,17 +343,18 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
                   required
                 />
               </div>
-              <div>
-                <label className="form-label">Address / Village Cluster</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Sector 4 Cluster, Block B"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  required
-                />
-              </div>
+            </div>
+
+            <div>
+              <label className="form-label">Address / Village Cluster</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="e.g. Sector 4 Cluster, Block B"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                required
+              />
             </div>
 
             {/* Worker Specific */}
@@ -502,6 +527,7 @@ interface ServiceBookingModalProps {
 
 function ServiceBookingModal({ service, user, onClose, onBookingSubmitted }: ServiceBookingModalProps) {
   const [address, setAddress] = useState(user.address || '');
+  const [phone, setPhone] = useState(user.phone || '');
   const [date, setDate] = useState('');
   const [problemDescription, setProblemDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -509,8 +535,12 @@ function ServiceBookingModal({ service, user, onClose, onBookingSubmitted }: Ser
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!address.trim() || !date) {
-      setError('Please provide service location and preferred time.');
+    if (!address.trim() || !date || !phone.trim()) {
+      setError('Please provide service location, contact phone number, and preferred time.');
+      return;
+    }
+    if (phone.trim().length < 10) {
+      setError('Please enter a valid 10-digit mobile phone number.');
       return;
     }
     if (!problemDescription.trim()) {
@@ -525,8 +555,8 @@ function ServiceBookingModal({ service, user, onClose, onBookingSubmitted }: Ser
         id: `bk-${Date.now()}`,
         customerId: user.id,
         customerName: user.name,
-        customerPhone: user.phone || '9823011223',
-        customerAddress: user.address || address.trim(),
+        customerPhone: phone.trim(),
+        customerAddress: address.trim(),
         serviceId: service.id,
         serviceName: service.name,
         problemDescription: problemDescription.trim(),
@@ -571,6 +601,26 @@ function ServiceBookingModal({ service, user, onClose, onBookingSubmitted }: Ser
               onChange={(e) => setAddress(e.target.value)}
               required
             />
+          </div>
+
+          <div>
+            <label className="form-label">Contact Phone Number (For Worker Direct Call & WhatsApp)</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">+91</span>
+              <input
+                type="tel"
+                className="form-input pl-11 font-mono"
+                placeholder="e.g. 9845012345"
+                value={phone}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setPhone(val);
+                  setError('');
+                }}
+                maxLength={10}
+                required
+              />
+            </div>
           </div>
 
           <div>

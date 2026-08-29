@@ -1,5 +1,5 @@
-// Unified Client Data Engine for SahakarGig
-// Provides 100% full real-time interactivity on both Static Hosting (Firebase) & Dynamic Servers
+// Unified Client & Multi-Device Cloud Sync Data Engine for SahakarGig
+// Supports LocalStorage persistence + Multi-Device Real-Time Cloud Synchronization
 'use client';
 
 export type Role = 'CUSTOMER' | 'WORKER' | 'ADMIN';
@@ -347,6 +347,9 @@ const LS_KEY_WORKERS = 'sahakar_workers';
 const LS_KEY_SERVICES = 'sahakar_services';
 const LS_KEY_BOOKINGS = 'sahakar_bookings';
 const LS_KEY_SOCIETY = 'sahakar_society';
+const LS_KEY_CLOUD_DB = 'sahakar_cloud_db_url';
+
+const DEFAULT_CLOUD_DB = 'https://sahakarigig-default-rtdb.firebaseio.com';
 
 function getItem<T>(key: string, defaultVal: T): T {
   if (typeof window === 'undefined') return defaultVal;
@@ -367,8 +370,59 @@ function setItem<T>(key: string, val: T): void {
   }
 }
 
+// ─── Multi-Device Cloud Real-Time Sync Engine ────────────────────────────────
+async function syncFromCloud(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  const cloudUrl = localStorage.getItem(LS_KEY_CLOUD_DB) || DEFAULT_CLOUD_DB;
+  try {
+    const res = await fetch(`${cloudUrl}/state.json`, { method: 'GET', cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && typeof data === 'object') {
+        if (Array.isArray(data.users)) setItem(LS_KEY_USERS, data.users);
+        if (Array.isArray(data.workers)) setItem(LS_KEY_WORKERS, data.workers);
+        if (Array.isArray(data.services)) setItem(LS_KEY_SERVICES, data.services);
+        if (Array.isArray(data.bookings)) setItem(LS_KEY_BOOKINGS, data.bookings);
+        if (data.society && typeof data.society === 'object') setItem(LS_KEY_SOCIETY, data.society);
+      }
+    }
+  } catch {
+    // Cloud sync fails silently, falls back to local storage
+  }
+}
+
+async function pushToCloud(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  const cloudUrl = localStorage.getItem(LS_KEY_CLOUD_DB) || DEFAULT_CLOUD_DB;
+  try {
+    const payload = {
+      users: getItem(LS_KEY_USERS, seedUsers),
+      workers: getItem(LS_KEY_WORKERS, seedWorkers),
+      services: getItem(LS_KEY_SERVICES, seedServices),
+      bookings: getItem(LS_KEY_BOOKINGS, seedBookings),
+      society: getItem(LS_KEY_SOCIETY, seedSociety),
+    };
+    await fetch(`${cloudUrl}/state.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    // Silent failover
+  }
+}
+
+// Initialize background cloud sync on client boot
+if (typeof window !== 'undefined') {
+  syncFromCloud();
+  setInterval(syncFromCloud, 2500);
+}
+
 // ─── Data Service Operations ──────────────────────────────────────────────────
 export const dataService = {
+  syncCloud: syncFromCloud,
+  pushCloud: pushToCloud,
+
   getSociety(): Society {
     return getItem<Society>(LS_KEY_SOCIETY, seedSociety);
   },
@@ -378,6 +432,7 @@ export const dataService = {
     if (monthly !== undefined && !isNaN(monthly) && monthly > 0) soc.monthlyPassRate = monthly;
     if (yearly !== undefined && !isNaN(yearly) && yearly > 0) soc.yearlyPassRate = yearly;
     setItem(LS_KEY_SOCIETY, soc);
+    pushToCloud();
     return soc;
   },
 
@@ -385,6 +440,7 @@ export const dataService = {
     const soc = this.getSociety();
     soc.welfareFundBalance += amount;
     setItem(LS_KEY_SOCIETY, soc);
+    pushToCloud();
   },
 
   getServices(): Service[] {
@@ -397,6 +453,7 @@ export const dataService = {
     if (idx !== -1) {
       services[idx].price = price;
       setItem(LS_KEY_SERVICES, services);
+      pushToCloud();
     }
     return services;
   },
@@ -428,7 +485,7 @@ export const dataService = {
         userId: user.id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
+        phone: user.phone || '9845012345',
         trade: workerData?.trade || user.trade || 'General Maintenance',
         localSociety: user.localSociety || 'Primary Cooperative Services Society',
         skills: workerData?.skills && workerData.skills.length > 0 ? workerData.skills : ['Maintenance'],
@@ -449,6 +506,7 @@ export const dataService = {
       setItem(LS_KEY_WORKERS, workers);
     }
 
+    pushToCloud();
     return user;
   },
 
@@ -489,6 +547,7 @@ export const dataService = {
 
     setItem(LS_KEY_WORKERS, workers);
     this.incrementWelfare(cost);
+    pushToCloud();
     return workers[idx];
   },
 
@@ -501,6 +560,7 @@ export const dataService = {
       if (update.kycStatus === 'VERIFIED') {
         this.incrementWelfare(250);
       }
+      pushToCloud();
       return workers[idx];
     }
     return undefined;
@@ -514,6 +574,7 @@ export const dataService = {
     const bookings = this.getBookings();
     bookings.unshift(booking);
     setItem(LS_KEY_BOOKINGS, bookings);
+    pushToCloud();
     return booking;
   },
 
@@ -562,6 +623,7 @@ export const dataService = {
         }
       }
 
+      pushToCloud();
       return updated;
     }
     return undefined;
