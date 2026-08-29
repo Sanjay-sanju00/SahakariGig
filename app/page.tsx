@@ -1090,6 +1090,26 @@ export default function CustomerPortal() {
             ) : (
               /* Customer My Live Orders / History */
               <div className="space-y-4">
+                {/* Unified PACS Grievance & Authority Assistance Banner */}
+                <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border border-amber-200 dark:border-amber-800/80 rounded-2xl text-xs text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
+                      <Phone className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-amber-950 dark:text-amber-200 text-sm">PACS Grievance & Service Assistance Helpline</div>
+                      <div className="text-amber-800 dark:text-amber-300/90 text-xs">Have an issue with any service or artisan? Contact Primary Cooperative Authority directly:</div>
+                    </div>
+                  </div>
+                  <a
+                    href="tel:1234567890"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-xl font-black text-xs transition-all shadow-md shadow-amber-600/20 shrink-0 self-start sm:self-auto"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>+91 1234567890</span>
+                  </a>
+                </div>
+
                 {bookings.length === 0 ? (
                   <div className="card p-12 text-center space-y-3">
                     <ShoppingBag className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
@@ -1178,28 +1198,9 @@ export default function CustomerPortal() {
                           </div>
                         )}
 
-                        {/* Completed State: Support Note & Customer Review Card */}
+                        {/* Completed State: Customer Review Card */}
                         {isCompleted && (
-                          <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                            {/* Support Note */}
-                            <div className="p-3.5 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-xl text-xs text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                              <div className="flex items-start gap-2.5">
-                                <Phone className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-                                <div>
-                                  <div className="font-bold text-amber-950 dark:text-amber-200">Service Assistance & Grievance:</div>
-                                  <div className="text-amber-800 dark:text-amber-300/90 text-[11px]">Have an issue with this service? Contact the concerned PACS Authority / Society Coordinator:</div>
-                                </div>
-                              </div>
-                              <a
-                                href="tel:1234567890"
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-lg font-bold text-xs transition-all shadow-sm shrink-0 self-start sm:self-auto"
-                              >
-                                <Phone className="w-3.5 h-3.5" />
-                                <span>+91 1234567890</span>
-                              </a>
-                            </div>
-
-                            {/* Customer Review Card */}
+                          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                             <CustomerReviewCard
                               booking={bk}
                               onReviewSubmitted={() => refreshData(currentUser)}
