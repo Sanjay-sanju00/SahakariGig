@@ -1,4 +1,4 @@
 // Central data and type definitions for SahakarGig
-export * from './store';
-import appStore from './store';
-export default appStore;
+export * from './dataService';
+import dataService from './dataService';
+export default dataService;

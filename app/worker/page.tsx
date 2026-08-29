@@ -11,7 +11,7 @@ import {
   AlertTriangle, Sparkles
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
-import { Booking, WorkerProfile, User as UserType, Society } from '@/lib/store';
+import dataService, { Booking, WorkerProfile, User as UserType, Society } from '@/lib/dataService';
 import { formatCurrency, formatDateTime, getBadgeClass, getStatusReadableLabel } from '@/lib/utils';
 
 function getSessionUser(): UserType | null {
@@ -80,13 +80,13 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
 
       {/* Action Buttons: Direct Call, WhatsApp & Navigation */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-        {/* Call Button */}
+        {/* Direct Phone Call Button */}
         <a
-          href={`tel:${phone}`}
-          className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
+          href={`tel:${cleanDigits}`}
+          className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-blue-600/20"
         >
           <Phone className="w-3.5 h-3.5" />
-          <span>Call Customer</span>
+          <span>Call Now</span>
         </a>
 
         {/* WhatsApp Chat Button */}
@@ -94,28 +94,28 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
           href={waUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 rounded-lg text-xs font-bold transition-colors"
+          className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm shadow-emerald-600/20"
         >
-          <MessageCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-          <span>WhatsApp / SMS</span>
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span>WhatsApp</span>
         </a>
 
-        {/* Directions / Maps Button */}
+        {/* Live GPS Directions */}
         <a
           href={mapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-lg text-xs font-bold transition-colors"
+          className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-slate-700 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 active:scale-95 text-white font-bold text-xs rounded-lg transition-all shadow-sm"
         >
-          <Navigation className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-          <span>Directions</span>
+          <Navigation className="w-3.5 h-3.5 text-blue-300" />
+          <span>GPS Map</span>
         </a>
       </div>
     </div>
   );
 }
 
-// ─── Worker Membership Pass Subscription Modal ───────────────────────────────
+// ─── Subscription Pass Modal ────────────────────────────────────────────────
 interface SubscriptionModalProps {
   worker: WorkerProfile;
   monthlyRate: number;
@@ -134,28 +134,15 @@ function SubscriptionModal({ worker, monthlyRate, yearlyRate, onClose, onSubscri
   async function handleSubscribe() {
     setLoading(true);
     setError('');
-    try {
-      const res = await fetch('/api/workers', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: worker.userId,
-          action: 'SUBSCRIBE',
-          plan: selectedPlan,
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok && data.worker) {
-        onSubscribed(data.worker);
+    setTimeout(() => {
+      const updated = dataService.subscribeWorker(worker.userId, selectedPlan);
+      if (updated) {
+        onSubscribed(updated);
       } else {
-        setError(data.error || 'Failed to activate pass.');
+        setError('Failed to activate pass.');
       }
-    } catch {
-      setError('Network error. Please try again.');
-    } finally {
       setLoading(false);
-    }
+    }, 300);
   }
 
   const activeCost = selectedPlan === 'YEARLY' ? yearlyRate : monthlyRate;
@@ -312,34 +299,16 @@ export default function WorkerDashboardPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  const refreshData = useCallback(async (userId: string) => {
-    try {
-      const [wRes, bRes, sRes] = await Promise.all([
-        fetch('/api/workers'),
-        fetch(`/api/bookings?workerId=${userId}&includePending=true`),
-        fetch('/api/society'),
-      ]);
+  const refreshData = useCallback((userId: string) => {
+    const prof = dataService.findWorkerByUserId(userId);
+    if (prof) setWorkerProfile(prof);
 
-      if (wRes.ok) {
-        const wData = await wRes.json();
-        const prof = (wData.workers || []).find((w: WorkerProfile) => w.userId === userId);
-        if (prof) setWorkerProfile(prof);
-      }
+    const bData = dataService.getBookings();
+    setBookings(bData || []);
 
-      if (bRes.ok) {
-        const bData = await bRes.json();
-        setBookings(bData.bookings || []);
-      }
-
-      if (sRes.ok) {
-        const sData = await sRes.json();
-        if (sData.society) setSociety(sData.society);
-      }
-    } catch (err) {
-      console.error('Failed to sync worker data:', err);
-    } finally {
-      setLoading(false);
-    }
+    const sData = dataService.getSociety();
+    if (sData) setSociety(sData);
+    setLoading(false);
   }, []);
 
   // Auth Guard
@@ -387,25 +356,12 @@ export default function WorkerDashboardPage() {
     }
 
     const nextState = !workerProfile.isAvailable;
-    try {
-      const res = await fetch('/api/workers', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: currentUser.id,
-          isAvailable: nextState,
-        }),
-      });
-      if (res.ok) {
-        setWorkerProfile((prev) => (prev ? { ...prev, isAvailable: nextState } : null));
-        showToast(nextState ? '🟢 You are now Online and accepting jobs.' : '⛔ You are now Offline.');
-      } else {
-        const d = await res.json();
-        showToast(d.error || 'Failed to update status.');
-        setShowSubscriptionModal(true);
-      }
-    } catch (err) {
-      console.error('Error toggling availability:', err);
+    const updated = dataService.updateWorker(currentUser.id, {
+      isAvailable: nextState,
+    });
+    if (updated) {
+      setWorkerProfile(updated);
+      showToast(nextState ? '🟢 You are now Online and accepting jobs.' : '⛔ You are now Offline.');
     }
   }
 
@@ -424,100 +380,65 @@ export default function WorkerDashboardPage() {
     }
 
     setActionLoadingId(bookingId);
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: bookingId,
-          action: 'ACCEPT_JOB',
-          workerId: currentUser.id,
-          workerName: currentUser.name,
-        }),
+    setTimeout(() => {
+      dataService.updateBooking(bookingId, {
+        status: 'IN_PROGRESS',
+        workerId: currentUser.id,
+        workerName: currentUser.name,
+        acceptedAt: new Date().toISOString(),
       });
-      if (res.ok) {
-        showToast('✓ Job accepted! You can now contact the resident and begin service.');
-        refreshData(currentUser.id);
-      } else {
-        const d = await res.json();
-        showToast(d.error || 'Failed to accept job.');
-        setShowSubscriptionModal(true);
-      }
-    } catch (err) {
-      console.error('Error accepting job:', err);
-    } finally {
       setActionLoadingId(null);
-    }
+      showToast('✓ Job accepted! You can now contact the resident and begin service.');
+      refreshData(currentUser.id);
+    }, 300);
   }
 
   // Decline Request
   async function handleDeclineJob(bookingId: string) {
     if (!currentUser) return;
     setActionLoadingId(bookingId);
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: bookingId,
-          action: 'DECLINE_JOB',
-        }),
+    setTimeout(() => {
+      dataService.updateBooking(bookingId, {
+        status: 'CANCELLED',
       });
-      if (res.ok) {
-        showToast('✓ Job request declined.');
-        refreshData(currentUser.id);
-      }
-    } catch (err) {
-      console.error('Error declining job:', err);
-    } finally {
       setActionLoadingId(null);
-    }
+      showToast('✓ Job request declined.');
+      refreshData(currentUser.id);
+    }, 300);
   }
 
   // Step 2: Complete Physical Job & Request Settlement -> AWAITING_PAYMENT
   async function handleRequestSettlement(bookingId: string) {
     if (!currentUser) return;
     setActionLoadingId(bookingId);
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: bookingId,
-          action: 'REQUEST_SETTLEMENT',
-        }),
+    setTimeout(() => {
+      dataService.updateBooking(bookingId, {
+        status: 'AWAITING_PAYMENT',
+        settlementRequestedAt: new Date().toISOString(),
       });
-      if (res.ok) {
-        refreshData(currentUser.id);
-      }
-    } catch (err) {
-      console.error('Error requesting settlement:', err);
-    } finally {
       setActionLoadingId(null);
-    }
+      showToast('✓ Job Completed! Settlement requested from resident.');
+      refreshData(currentUser.id);
+    }, 300);
   }
 
   // Step 3 Option B: Worker Collects Cash On-Site -> COMPLETED_PAID_CASH
   async function handleCollectCash(bookingId: string) {
     if (!currentUser) return;
+    if (!confirm('Confirm that you have physically collected cash from the customer on site?')) return;
     setActionLoadingId(bookingId);
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: bookingId,
-          action: 'COLLECT_CASH',
-        }),
+    setTimeout(() => {
+      dataService.updateBooking(bookingId, {
+        status: 'COMPLETED_PAID_CASH',
+        paymentStatus: 'PAID_CASH',
+        paymentMethod: 'CASH',
+        paidAt: new Date().toISOString(),
+        completedAt: new Date().toISOString(),
       });
-      if (res.ok) {
-        refreshData(currentUser.id);
-      }
-    } catch (err) {
-      console.error('Error confirming cash collection:', err);
-    } finally {
       setActionLoadingId(null);
-    }
+      showToast('✓ Cash Settlement Recorded! 100% credited to your wallet.');
+      refreshData(currentUser.id);
+    }, 300);
   }
 
   if (loading || !currentUser) {

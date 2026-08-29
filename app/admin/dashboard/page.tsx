@@ -9,7 +9,7 @@ import {
   Check, User, QrCode
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
-import { WorkerProfile, Service, Society } from '@/lib/store';
+import dataService, { WorkerProfile, Service, Society } from '@/lib/dataService';
 import { formatCurrency, getBadgeClass } from '@/lib/utils';
 
 export default function AdminDashboardPage() {
@@ -57,29 +57,20 @@ export default function AdminDashboardPage() {
   }, [router]);
 
   // Load Administrative Data
-  const fetchData = useCallback(async () => {
-    try {
-      const [socRes, workRes] = await Promise.all([
-        fetch('/api/society'),
-        fetch('/api/workers'),
-      ]);
+  const fetchData = useCallback(() => {
+    const soc = dataService.getSociety();
+    setSociety(soc);
 
-      if (socRes.ok) {
-        const data = await socRes.json();
-        setSociety(data.society);
-        setServices(data.services || []);
-        if (data.metrics) setMetrics(data.metrics);
-      }
+    const svcs = dataService.getServices();
+    setServices(svcs || []);
 
-      if (workRes.ok) {
-        const wData = await workRes.json();
-        setWorkers(wData.workers || []);
-      }
-    } catch (err) {
-      console.error('Failed to load admin data:', err);
-    } finally {
-      setLoading(false);
-    }
+    const met = dataService.getPlatformMetrics();
+    setMetrics(met);
+
+    const wkrs = dataService.getWorkers();
+    setWorkers(wkrs || []);
+
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -102,29 +93,19 @@ export default function AdminDashboardPage() {
 
   async function handleKycAction(userId: string, action: 'VERIFIED' | 'REJECTED') {
     setUpdatingKycId(userId);
-    try {
-      const res = await fetch('/api/workers', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, kycStatus: action }),
-      });
-
-      if (res.ok) {
-        showToast(
-          action === 'VERIFIED'
-            ? '✓ Worker KYC Approved. ₹250 pass credit contributed to Welfare Pool.'
-            : '✓ Worker KYC Rejected.'
-        );
-        await fetchData();
-        if (selectedWorkerKyc && selectedWorkerKyc.userId === userId) {
-          setSelectedWorkerKyc(null);
-        }
+    setTimeout(() => {
+      dataService.updateWorker(userId, { kycStatus: action });
+      showToast(
+        action === 'VERIFIED'
+          ? '✓ Worker KYC Approved. ₹250 pass credit contributed to Welfare Pool.'
+          : '✓ Worker KYC Rejected.'
+      );
+      fetchData();
+      if (selectedWorkerKyc && selectedWorkerKyc.userId === userId) {
+        setSelectedWorkerKyc(null);
       }
-    } catch (err) {
-      console.error('Failed to update KYC status:', err);
-    } finally {
       setUpdatingKycId(null);
-    }
+    }, 300);
   }
 
   function startEditPrice(svc: Service) {
@@ -136,24 +117,13 @@ export default function AdminDashboardPage() {
     const numPrice = parseFloat(editPriceValue);
     if (isNaN(numPrice) || numPrice <= 0) return;
 
-    try {
-      const res = await fetch('/api/society', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceId, price: numPrice }),
-      });
-
-      if (res.ok) {
-        setServices((prev) =>
-          prev.map((s) => (s.id === serviceId ? { ...s, price: numPrice } : s))
-        );
-        showToast('✓ Village Cluster Service Rate successfully updated.');
-      }
-    } catch (err) {
-      console.error('Failed to update price:', err);
-    } finally {
-      setEditingServiceId(null);
-    }
+    dataService.updateServicePrice(serviceId, numPrice);
+    setServices((prev) =>
+      prev.map((s) => (s.id === serviceId ? { ...s, price: numPrice } : s))
+    );
+    showToast('✓ Village Cluster Service Rate successfully updated.');
+    setEditingServiceId(null);
+    fetchData();
   }
 
   // Synchronize pass rate input fields when society loads (only if not actively editing)
@@ -174,27 +144,14 @@ export default function AdminDashboardPage() {
     }
 
     setSavingPassRates(true);
-    try {
-      const res = await fetch('/api/society', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monthlyPassRate: monthly, yearlyPassRate: yearly }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setSociety(data.society);
-        setIsEditingPassRates(false);
-        showToast(`✓ Worker Membership Pass Rates updated: Monthly ₹${monthly}, Yearly ₹${yearly}`);
-      } else {
-        showToast('❌ Failed to update membership pass rates.');
-      }
-    } catch (err) {
-      console.error('Failed to update pass rates:', err);
-      showToast('❌ Network error updating pass rates.');
-    } finally {
+    setTimeout(() => {
+      const updated = dataService.updateSocietyPassRates(monthly, yearly);
+      setSociety(updated);
+      setIsEditingPassRates(false);
       setSavingPassRates(false);
-    }
+      showToast(`✓ Worker Membership Pass Rates updated: Monthly ₹${monthly}, Yearly ₹${yearly}`);
+      fetchData();
+    }, 300);
   }
 
   if (!isAuthenticated) return null;

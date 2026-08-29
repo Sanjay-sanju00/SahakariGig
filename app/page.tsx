@@ -11,7 +11,7 @@ import {
   Coins, Wrench, FileText
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
-import { Service, Booking, User } from '@/lib/store';
+import dataService, { Service, Booking, User } from '@/lib/dataService';
 import { formatCurrency, formatDateTime, getBadgeClass, getStatusReadableLabel } from '@/lib/utils';
 
 // ─── Session Helpers ───────────────────────────────────────────────────────
@@ -56,28 +56,15 @@ function SignInModal({ onClose, onSuccess, onSwitchToSignUp }: SignInModalProps)
     setError('');
     setLoading(true);
 
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password: password.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Failed to sign in. Please check your credentials.');
+    setTimeout(() => {
+      const user = dataService.login(email.trim().toLowerCase(), password.trim());
+      if (!user) {
+        setError('Invalid email or password. Please check your credentials.');
         setLoading(false);
         return;
       }
-
-      onSuccess(data.user);
-    } catch {
-      setError('Network error. Please try again.');
-      setLoading(false);
-    }
+      onSuccess(user);
+    }, 250);
   }
 
   return (
@@ -201,33 +188,39 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
     setError('');
     setLoading(true);
 
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim().toLowerCase(),
-          password: password.trim(),
-          address: address.trim(),
-          role,
-          trade: role === 'WORKER' ? trade : undefined,
-          kycDocName: role === 'WORKER' ? (kycDocName || 'artisan_id_card.pdf') : undefined,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Failed to create account.');
+    setTimeout(() => {
+      const existing = dataService.findUser(email.trim().toLowerCase());
+      if (existing) {
+        setError('An account with this email already exists.');
         setLoading(false);
         return;
       }
 
-      onSuccess(data.user);
-    } catch {
-      setError('Network error. Please try again.');
-      setLoading(false);
-    }
+      const newUser: User = {
+        id: `usr-${Date.now()}`,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
+        phone: '9823011223',
+        role,
+        address: address.trim(),
+        trade: role === 'WORKER' ? trade : undefined,
+        localSociety: 'Primary Cooperative Services Society',
+        kycDocName: role === 'WORKER' ? (kycDocName || 'artisan_id_card.pdf') : undefined,
+        isVerified: true,
+        createdAt: new Date().toISOString(),
+      };
+
+      const workerPayload = role === 'WORKER' ? {
+        trade,
+        skills: [trade, 'Maintenance', 'Repairs'],
+        bio: `${trade} specialist associated with Primary Cooperative Services Society.`,
+        kycDocName: kycDocName || 'artisan_id_card.pdf',
+      } : undefined;
+
+      const registered = dataService.register(newUser, workerPayload);
+      onSuccess(registered);
+    }, 300);
   }
 
   return (
@@ -527,35 +520,28 @@ function ServiceBookingModal({ service, user, onClose, onBookingSubmitted }: Ser
     setError('');
     setLoading(true);
 
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId: user.id,
-          customerName: user.name,
-          customerPhone: user.phone || '9823011223',
-          customerAddress: user.address,
-          serviceId: service.id,
-          serviceName: service.name,
-          problemDescription: problemDescription.trim(),
-          scheduledDate: new Date(date).toISOString(),
-          address: address.trim(),
-          totalAmount: service.price,
-        }),
-      });
+    setTimeout(() => {
+      const newBooking: Booking = {
+        id: `bk-${Date.now()}`,
+        customerId: user.id,
+        customerName: user.name,
+        customerPhone: user.phone || '9823011223',
+        customerAddress: user.address || address.trim(),
+        serviceId: service.id,
+        serviceName: service.name,
+        problemDescription: problemDescription.trim(),
+        status: 'PENDING_ACCEPTANCE',
+        scheduledDate: new Date(date).toISOString(),
+        address: address.trim(),
+        totalAmount: service.price,
+        paymentStatus: 'PENDING',
+        createdAt: new Date().toISOString(),
+      };
 
-      const data = await res.json();
-      if (res.ok) {
-        onBookingSubmitted(data.booking);
-      } else {
-        setError(data.error || 'Failed to place booking.');
-        setLoading(false);
-      }
-    } catch {
-      setError('Network error. Please try again.');
+      const added = dataService.addBooking(newBooking);
       setLoading(false);
-    }
+      onBookingSubmitted(added);
+    }, 300);
   }
 
   return (
@@ -653,27 +639,16 @@ function CustomerReviewCard({ booking, onReviewSubmitted }: { booking: Booking; 
   async function handleReviewSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: booking.id,
-          action: 'SUBMIT_REVIEW',
-          reviewRating: rating,
-          reviewComment: comment.trim() || 'Service completed satisfactorily.',
-        }),
+    setTimeout(() => {
+      dataService.updateBooking(booking.id, {
+        reviewRating: rating,
+        reviewComment: comment.trim() || 'Service completed satisfactorily.',
+        reviewedAt: new Date().toISOString(),
       });
-
-      if (res.ok) {
-        setSubmitted(true);
-        onReviewSubmitted();
-      }
-    } catch (err) {
-      console.error('Review submit error:', err);
-    } finally {
       setSubmitting(false);
-    }
+      setSubmitted(true);
+      onReviewSubmitted();
+    }, 300);
   }
 
   if (submitted || booking.reviewRating) {
@@ -749,23 +724,15 @@ export default function CustomerPortal() {
   const [activeTab, setActiveTab] = useState<'services' | 'bookings'>('services');
 
   // Real-time synchronization
-  const refreshData = useCallback(async (user: User | null) => {
-    try {
-      const socRes = await fetch('/api/society');
-      if (socRes.ok) {
-        const data = await socRes.json();
-        setServices(data.services || []);
-      }
+  const refreshData = useCallback((user: User | null) => {
+    const svcs = dataService.getServices();
+    setServices(svcs || []);
 
-      if (user) {
-        const bRes = await fetch(`/api/bookings?customerId=${user.id}`);
-        if (bRes.ok) {
-          const bData = await bRes.json();
-          setBookings(bData.bookings || []);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to sync customer state:', err);
+    if (user) {
+      const allBookings = dataService.getBookings();
+      setBookings(allBookings.filter((b) => b.customerId === user.id));
+    } else {
+      setBookings([]);
     }
   }, []);
 
@@ -812,22 +779,14 @@ export default function CustomerPortal() {
   // 1-Click Post-Service Digital Payment Confirmation
   async function handleConfirmDigitalPayment() {
     if (!activePaymentBooking) return;
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: activePaymentBooking.id,
-          action: 'PAY_DIGITALLY',
-        }),
-      });
-
-      if (res.ok) {
-        refreshData(currentUser);
-      }
-    } catch (err) {
-      console.error('Error confirming digital payment:', err);
-    }
+    dataService.updateBooking(activePaymentBooking.id, {
+      status: 'COMPLETED_PAID_DIGITALLY',
+      paymentStatus: 'PAID_DIGITAL',
+      paymentMethod: 'DIGITAL',
+      paidAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+    });
+    refreshData(currentUser);
   }
 
   const categories = ['All', ...Array.from(new Set(services.map((s) => s.category)))];
