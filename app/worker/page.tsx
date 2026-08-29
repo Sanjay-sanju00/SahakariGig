@@ -32,7 +32,7 @@ interface CustomerContactCardProps {
 
 function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) {
   const [copied, setCopied] = useState(false);
-  const phone = booking.customerPhone || '9823011223';
+  const phone = booking.customerPhone || '';
   const cleanDigits = phone.replace(/\D/g, '');
   const waUrl = `https://wa.me/91${cleanDigits}?text=${encodeURIComponent(
     `Hello ${booking.customerName}, I am your SahakarGig artisan (${workerName}) for ${booking.serviceName}. I am contacting you regarding your service request.`
@@ -61,7 +61,7 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
             </div>
             <div className="text-[11px] text-slate-600 dark:text-slate-400 flex items-center gap-1 font-mono">
               <Phone className="w-3 h-3 text-slate-400" />
-              <span>+91 {phone}</span>
+              <span>{phone ? `+91 ${phone}` : 'Contact on file'}</span>
             </div>
           </div>
         </div>

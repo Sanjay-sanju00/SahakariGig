@@ -534,7 +534,7 @@ interface ServiceBookingModalProps {
 
 function ServiceBookingModal({ service, user, onClose, onBookingSubmitted }: ServiceBookingModalProps) {
   const [address, setAddress] = useState(user.address || '');
-  const [phone, setPhone] = useState(user.phone || '');
+  const [phone, setPhone] = useState('');
   const [date, setDate] = useState('');
   const [problemDescription, setProblemDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -1178,11 +1178,21 @@ export default function CustomerPortal() {
                         {isCompleted && (
                           <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
                             {/* Support Note */}
-                            <div className="p-3 bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-xl text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
-                              <Phone className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-                              <div>
-                                <span className="font-bold">Service Assistance:</span> Have an issue with this service? Contact your local society coordinator.
+                            <div className="p-3.5 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-xl text-xs text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="flex items-start gap-2.5">
+                                <Phone className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                                <div>
+                                  <div className="font-bold text-amber-950 dark:text-amber-200">Service Assistance & Grievance:</div>
+                                  <div className="text-amber-800 dark:text-amber-300/90 text-[11px]">Have an issue with this service? Contact the concerned PACS Authority / Society Coordinator:</div>
+                                </div>
                               </div>
+                              <a
+                                href="tel:1234567890"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-lg font-bold text-xs transition-all shadow-sm shrink-0 self-start sm:self-auto"
+                              >
+                                <Phone className="w-3.5 h-3.5" />
+                                <span>+91 1234567890</span>
+                              </a>
                             </div>
 
                             {/* Customer Review Card */}
