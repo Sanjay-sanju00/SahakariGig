@@ -1001,6 +1001,18 @@ export default function MarketplacePage() {
     }
   }
 
+  function handleCancelBooking(bookingId: string) {
+    if (!confirm('Are you sure you want to cancel this service request? This action is only allowed while the artisan has not yet accepted the job.')) {
+      return;
+    }
+    const res = dataService.cancelBooking(bookingId, 'Cancelled by resident before acceptance');
+    if (res.success) {
+      refreshData(currentUser);
+    } else {
+      alert(res.error || 'Unable to cancel this request.');
+    }
+  }
+
   function getTradeBasePrice(tradeName: string): number {
     const found = services.find((s) => s.category.toLowerCase() === tradeName.toLowerCase() || s.name.toLowerCase().includes(tradeName.toLowerCase()));
     return found?.basePrice || found?.price || 150;
@@ -1583,68 +1595,106 @@ export default function MarketplacePage() {
                           </div>
                         )}
 
-                        {/* Visual Progress Tracker with Distinct Phase Highlighting */}
-                        <div className="bg-zinc-50 dark:bg-zinc-900/60 rounded-xl p-3.5 border border-zinc-200 dark:border-zinc-700/60 space-y-2">
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px]">
-                            {/* Step 1: Requested */}
-                            <div className={
-                              bk.status === 'PENDING_ACCEPTANCE'
-                                ? 'step-box step-active'
-                                : 'step-box step-completed'
-                            }>
-                              <span className="font-bold">1. Requested</span>
-                              <span className="text-[9px] opacity-80">{bk.status === 'PENDING_ACCEPTANCE' ? 'Waiting' : 'Accepted'}</span>
+                        {/* Cancellation / Non-Cancellable Policy Action Bar */}
+                        {bk.status === 'PENDING_ACCEPTANCE' && (
+                          <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                            <div className="text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
+                              <Clock className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                              <span>Waiting for artisan acceptance. You may cancel anytime before they confirm.</span>
                             </div>
-
-                            {/* Step 2: In Progress */}
-                            <div className={
-                              bk.status === 'PENDING_ACCEPTANCE'
-                                ? 'step-box step-pending'
-                                : bk.status === 'IN_PROGRESS'
-                                ? 'step-box step-active'
-                                : 'step-box step-completed'
-                            }>
-                              <span className="font-bold">2. In Progress</span>
-                              <span className="text-[9px] opacity-80">
-                                {bk.status === 'PENDING_ACCEPTANCE' ? 'Pending' : bk.status === 'IN_PROGRESS' ? 'Active' : 'Finished'}
-                              </span>
-                            </div>
-
-                            {/* Step 3: Work Done (Pay) */}
-                            <div className={
-                              ['PENDING_ACCEPTANCE', 'IN_PROGRESS'].includes(bk.status)
-                                ? 'step-box step-pending'
-                                : bk.status === 'AWAITING_PAYMENT'
-                                ? 'step-box step-awaiting'
-                                : 'step-box step-completed'
-                            }>
-                              <span className="font-bold">3. {isCompleted ? 'Settled' : 'Pay Bill'}</span>
-                              <span className="text-[9px] opacity-80">
-                                {['PENDING_ACCEPTANCE', 'IN_PROGRESS'].includes(bk.status)
-                                  ? 'Upcoming'
-                                  : bk.status === 'AWAITING_PAYMENT'
-                                  ? 'Pay Now'
-                                  : 'Paid'}
-                              </span>
-                            </div>
-
-                            {/* Step 4: Settled & Rated */}
-                            <div className={
-                              isCompleted
-                                ? 'step-box step-completed'
-                                : 'step-box step-pending'
-                            }>
-                              <span className="font-bold">4. Rated</span>
-                              <span className="text-[9px] opacity-80">{isCompleted ? 'Closed' : 'Pending'}</span>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelBooking(bk.id)}
+                              className="btn-secondary text-xs py-1.5 px-3 font-semibold text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors flex items-center gap-1 shrink-0 self-end sm:self-auto"
+                            >
+                              <X className="w-3.5 h-3.5" /> Cancel Request
+                            </button>
                           </div>
+                        )}
 
-                          {bk.workerName && (
-                            <div className="text-xs text-zinc-500 text-center pt-1">
-                              Assigned Artisan: <strong className="text-zinc-900 dark:text-zinc-50">{bk.workerName}</strong>
+                        {['IN_PROGRESS', 'AWAITING_PAYMENT'].includes(bk.status) && (
+                          <div className="flex items-center justify-between text-[11px] text-zinc-500 pt-1 border-t border-zinc-100 dark:border-zinc-800/60">
+                            <span className="flex items-center gap-1.5 font-medium">
+                              <Shield className="w-3.5 h-3.5 text-zinc-500" />
+                              Artisan Agreed & Dispatched
+                            </span>
+                            <span className="font-semibold text-zinc-400">
+                              Non-Cancellable Policy Active
+                            </span>
+                          </div>
+                        )}
+
+                        {bk.status === 'CANCELLED' && (
+                          <div className="p-3 bg-zinc-100 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-2">
+                            <X className="w-4 h-4 text-zinc-400 shrink-0" />
+                            <span>This booking request was cancelled before artisan agreement. No charges incurred.</span>
+                          </div>
+                        )}
+
+                        {/* Visual Progress Tracker with Distinct Phase Highlighting */}
+                        {bk.status !== 'CANCELLED' && (
+                          <div className="bg-zinc-50 dark:bg-zinc-900/60 rounded-xl p-3.5 border border-zinc-200 dark:border-zinc-700/60 space-y-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-[11px]">
+                              {/* Step 1: Requested */}
+                              <div className={
+                                bk.status === 'PENDING_ACCEPTANCE'
+                                  ? 'step-box step-active'
+                                  : 'step-box step-completed'
+                              }>
+                                <span className="font-bold">1. Requested</span>
+                                <span className="text-[9px] opacity-80">{bk.status === 'PENDING_ACCEPTANCE' ? 'Waiting' : 'Accepted'}</span>
+                              </div>
+
+                              {/* Step 2: In Progress */}
+                              <div className={
+                                bk.status === 'PENDING_ACCEPTANCE'
+                                  ? 'step-box step-pending'
+                                  : bk.status === 'IN_PROGRESS'
+                                  ? 'step-box step-active'
+                                  : 'step-box step-completed'
+                              }>
+                                <span className="font-bold">2. In Progress</span>
+                                <span className="text-[9px] opacity-80">
+                                  {bk.status === 'PENDING_ACCEPTANCE' ? 'Pending' : bk.status === 'IN_PROGRESS' ? 'Active' : 'Finished'}
+                                </span>
+                              </div>
+
+                              {/* Step 3: Work Done (Pay) */}
+                              <div className={
+                                ['PENDING_ACCEPTANCE', 'IN_PROGRESS'].includes(bk.status)
+                                  ? 'step-box step-pending'
+                                  : bk.status === 'AWAITING_PAYMENT'
+                                  ? 'step-box step-awaiting'
+                                  : 'step-box step-completed'
+                              }>
+                                <span className="font-bold">3. {isCompleted ? 'Settled' : 'Pay Bill'}</span>
+                                <span className="text-[9px] opacity-80">
+                                  {['PENDING_ACCEPTANCE', 'IN_PROGRESS'].includes(bk.status)
+                                    ? 'Upcoming'
+                                    : bk.status === 'AWAITING_PAYMENT'
+                                    ? 'Pay Now'
+                                    : 'Paid'}
+                                </span>
+                              </div>
+
+                              {/* Step 4: Settled & Rated */}
+                              <div className={
+                                isCompleted
+                                  ? 'step-box step-completed'
+                                  : 'step-box step-pending'
+                              }>
+                                <span className="font-bold">4. Rated</span>
+                                <span className="text-[9px] opacity-80">{isCompleted ? 'Closed' : 'Pending'}</span>
+                              </div>
                             </div>
-                          )}
-                        </div>
+
+                            {bk.workerName && (
+                              <div className="text-xs text-zinc-500 text-center pt-1">
+                                Assigned Artisan: <strong className="text-zinc-900 dark:text-zinc-50">{bk.workerName}</strong>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })

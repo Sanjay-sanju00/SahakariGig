@@ -115,7 +115,7 @@ export interface Booking {
   settlementRequestedAt?: string;
   paidAt?: string;
   completedAt?: string;
-  // 3-Factor Review Survey Submission
+  // 3-Factor Review Survey Submission (Customer -> Worker)
   qualityRating?: number;         // 1 - 5 Work Quality
   behaviorRating?: number;        // 1 - 5 Behavior & Punctuality
   pricingRating?: number;         // 1 - 5 Pricing Fairness (1=Highly Overcharged, 5=Highly Fair)
@@ -123,6 +123,12 @@ export interface Booking {
   reviewRating?: number;
   reviewComment?: string;
   reviewedAt?: string;
+  // Worker-to-Customer Private Behavior Rating (Worker -> Customer, strictly private to workers)
+  workerCustomerBehaviorRating?: number; // 1 - 5 Behavior score given by worker
+  workerCustomerReviewComment?: string;  // Private worker comment regarding customer behavior
+  workerReviewedCustomerAt?: string;     // When worker reviewed the customer
+  cancelledAt?: string;                  // When customer cancelled (only allowed before acceptance)
+  cancellationReason?: string;
 }
 
 // ─── Initial Seed Data ────────────────────────────────────────────────────────
@@ -402,6 +408,9 @@ const seedBookings: Booking[] = [
     reviewRating: 5.0,
     reviewComment: 'Prompt arrival and clean woodwork fitting. Fixed the scraping door smoothly without extra fuss!',
     reviewedAt: '2026-08-26T15:30:00Z',
+    workerCustomerBehaviorRating: 5,
+    workerCustomerReviewComment: 'Very courteous resident. Provided safe and clean workspace, clear instructions, and settled bill immediately.',
+    workerReviewedCustomerAt: '2026-08-26T15:35:00Z',
   },
   {
     id: 'bk-rev-1',
@@ -433,6 +442,9 @@ const seedBookings: Booking[] = [
     reviewRating: 5.0,
     reviewComment: 'Excellent electrical work! Replaced the faulty MCB switch and balanced the load cleanly. No extra hidden charges.',
     reviewedAt: '2026-08-24T12:30:00Z',
+    workerCustomerBehaviorRating: 5,
+    workerCustomerReviewComment: 'Extremely polite customer. Offered water, clarified exact switch requirements, and paid digitally right upon job wrap-up.',
+    workerReviewedCustomerAt: '2026-08-24T12:35:00Z',
   },
   {
     id: 'bk-rev-2',
@@ -1015,6 +1027,86 @@ export const dataService = {
         const timeB = new Date(b.reviewedAt || b.completedAt || b.createdAt).getTime();
         return timeB - timeA;
       });
+  },
+
+  // Worker reviewing customer based on behavior only (Strictly Private to Workers)
+  submitWorkerCustomerReview(
+    bookingId: string,
+    behaviorRating: number,
+    comment?: string
+  ): Booking | undefined {
+    const bookings = this.getBookings();
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx === -1) return undefined;
+
+    const bk = bookings[idx];
+    const updated: Booking = {
+      ...bk,
+      workerCustomerBehaviorRating: Math.max(1, Math.min(5, behaviorRating)),
+      workerCustomerReviewComment: comment?.trim() || undefined,
+      workerReviewedCustomerAt: new Date().toISOString(),
+    };
+
+    bookings[idx] = updated;
+    setItem(LS_KEY_BOOKINGS, bookings);
+    pushToCloud();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('sahakar_state_updated'));
+    }
+    return updated;
+  },
+
+  // Get private worker-only reviews for a resident customer
+  getCustomerWorkerReviews(customerId: string): Booking[] {
+    const bookings = this.getBookings();
+    return bookings
+      .filter((b) => b.customerId === customerId && b.workerCustomerBehaviorRating !== undefined)
+      .sort((a, b) => {
+        const timeA = new Date(a.workerReviewedCustomerAt || a.completedAt || a.createdAt).getTime();
+        const timeB = new Date(b.workerReviewedCustomerAt || b.completedAt || b.createdAt).getTime();
+        return timeB - timeA;
+      });
+  },
+
+  // Get aggregate customer behavior rating (Worker-only trust intelligence)
+  getCustomerBehaviorRating(customerId: string): { averageRating: number; totalReviews: number } {
+    const reviews = this.getCustomerWorkerReviews(customerId);
+    if (reviews.length === 0) {
+      return { averageRating: 5.0, totalReviews: 0 };
+    }
+    const sum = reviews.reduce((acc, r) => acc + (r.workerCustomerBehaviorRating || 5), 0);
+    const avg = Math.round((sum / reviews.length) * 10) / 10;
+    return { averageRating: avg, totalReviews: reviews.length };
+  },
+
+  // Cancel requested booking (Allowed ONLY when worker has not agreed/accepted yet)
+  cancelBooking(bookingId: string, cancelReason?: string): { success: boolean; error?: string; booking?: Booking } {
+    const bookings = this.getBookings();
+    const idx = bookings.findIndex((b) => b.id === bookingId);
+    if (idx === -1) return { success: false, error: 'Booking request not found.' };
+
+    const bk = bookings[idx];
+    if (bk.status !== 'PENDING_ACCEPTANCE') {
+      return {
+        success: false,
+        error: 'Cancellation is not permitted once an artisan has agreed to and accepted the job request.'
+      };
+    }
+
+    const updated: Booking = {
+      ...bk,
+      status: 'CANCELLED',
+      cancelledAt: new Date().toISOString(),
+      cancellationReason: cancelReason?.trim() || undefined,
+    };
+
+    bookings[idx] = updated;
+    setItem(LS_KEY_BOOKINGS, bookings);
+    pushToCloud();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('sahakar_state_updated'));
+    }
+    return { success: true, booking: updated };
   },
 
   updateBooking(id: string, update: Partial<Booking>): Booking | undefined {

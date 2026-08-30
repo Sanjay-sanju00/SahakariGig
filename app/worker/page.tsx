@@ -28,9 +28,10 @@ function getSessionUser(): UserType | null {
 interface CustomerContactCardProps {
   booking: Booking;
   workerName: string;
+  onViewIntel?: () => void;
 }
 
-function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) {
+function CustomerContactCard({ booking, workerName, onViewIntel }: CustomerContactCardProps) {
   const [copied, setCopied] = useState(false);
   const phone = booking.customerPhone || '';
   const cleanDigits = phone.replace(/\D/g, '');
@@ -38,6 +39,8 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
     `Hello ${booking.customerName}, I am your SahakarGig artisan (${workerName}) for ${booking.serviceName}. I am contacting you regarding your service request.`
   )}`;
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.address)}`;
+
+  const customerRating = dataService.getCustomerBehaviorRating(booking.customerId);
 
   function handleCopy(text: string) {
     if (navigator.clipboard) {
@@ -76,6 +79,32 @@ function CustomerContactCard({ booking, workerName }: CustomerContactCardProps) 
           {copied ? <Check className="w-3 h-3 text-zinc-900 dark:text-zinc-50" /> : <Copy className="w-3 h-3" />}
           <span>{copied ? 'Copied!' : 'Copy Info'}</span>
         </button>
+      </div>
+
+      {/* Worker-Only Resident Behavior Score Badge */}
+      <div className="p-2 rounded-lg bg-zinc-100/80 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/50 flex items-center justify-between text-xs">
+        <div className="flex items-center gap-1.5">
+          <Shield className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+          <div>
+            <span className="text-zinc-500 font-medium">Resident Behavior:</span>{' '}
+            <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
+              {customerRating.totalReviews > 0 ? `${customerRating.averageRating.toFixed(1)}/5` : '5.0/5 (New)'}
+            </span>
+            <span className="text-[10px] text-zinc-400 ml-1">
+              ({customerRating.totalReviews} worker {customerRating.totalReviews === 1 ? 'review' : 'reviews'})
+            </span>
+          </div>
+        </div>
+
+        {onViewIntel && (
+          <button
+            type="button"
+            onClick={onViewIntel}
+            className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 underline flex items-center gap-0.5 transition-colors"
+          >
+            Artisan Intel ↗
+          </button>
+        )}
       </div>
 
       {/* Action Buttons: Direct Call, WhatsApp & Navigation */}
@@ -447,6 +476,255 @@ function SubscriptionModal({ worker, monthlyRate, yearlyRate, onClose, onSubscri
   );
 }
 
+// --- Worker-to-Customer Behavior Rating Modal (Confidential / Worker-Only) ---
+interface WorkerCustomerReviewModalProps {
+  booking: Booking;
+  onClose: () => void;
+  onSubmitReview: (rating: number, comment: string) => void;
+}
+
+const BEHAVIOR_SCALE: Record<number, { label: string; desc: string }> = {
+  1: { label: 'Difficult / Disrespectful', desc: 'Unreasonable demands, hostile or unsafe working conditions' },
+  2: { label: 'Uncooperative', desc: 'Slow communication, disputes over agreed job scope or delayed access' },
+  3: { label: 'Average / Fair', desc: 'Standard cooperative interaction, routine household access' },
+  4: { label: 'Cooperative & Polite', desc: 'Clear communication, respectful, provided safe work area' },
+  5: { label: 'Highly Respectful & Prompt', desc: 'Exemplary resident, welcoming, clear instructions & immediate payment' },
+};
+
+function WorkerCustomerReviewModal({ booking, onClose, onSubmitReview }: WorkerCustomerReviewModalProps) {
+  const [rating, setRating] = useState<number>(booking.workerCustomerBehaviorRating || 5);
+  const [comment, setComment] = useState<string>(booking.workerCustomerReviewComment || '');
+  const [submitting, setSubmitting] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setTimeout(() => {
+      onSubmitReview(rating, comment.trim());
+      setSubmitting(false);
+    }, 300);
+  }
+
+  return (
+    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center font-black text-sm shadow-sm">
+              <User className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base tracking-tight">
+                Rate Resident Behavior
+              </h3>
+              <p className="text-xs text-zinc-500">
+                Customer: {booking.customerName} · {booking.serviceName}
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400">
+            <XCircle className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Strict Confidentiality Banner */}
+        <div className="p-3 bg-zinc-100 dark:bg-zinc-900/80 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-1 text-xs">
+          <div className="font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-zinc-500" />
+            <span>Private Artisan-Only Confidentiality</span>
+          </div>
+          <p className="text-[11px] text-zinc-500 leading-relaxed">
+            This review is evaluated solely on <strong>customer behavior, respect, and payment cooperation</strong>. This data is strictly restricted to certified cooperative artisans on SahakarGig. <strong>The resident customer will never see this review or score.</strong>
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* 1-5 Star Behavior Rating */}
+          <div className="p-3.5 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-zinc-900 dark:text-zinc-50">
+                Resident Behavior & Cooperation
+              </label>
+              <span className="text-sm font-black text-zinc-900 dark:text-zinc-50 tabular-nums">
+                {rating} / 5
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 py-1">
+              {[1, 2, 3, 4, 5].map((st) => (
+                <button
+                  type="button"
+                  key={st}
+                  onClick={() => setRating(st)}
+                  className={`p-1.5 rounded-lg border transition-all ${
+                    rating >= st
+                      ? 'bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 border-zinc-950 dark:border-zinc-100 scale-105'
+                      : 'bg-white dark:bg-zinc-800 text-zinc-400 border-zinc-200 dark:border-zinc-700/60'
+                  }`}
+                  title={`${st} Star - ${BEHAVIOR_SCALE[st]?.label}`}
+                >
+                  <Star className="w-4 h-4 fill-current" />
+                </button>
+              ))}
+            </div>
+
+            <div className="text-[11px] pt-1">
+              <span className="font-bold text-zinc-800 dark:text-zinc-200 block">
+                {BEHAVIOR_SCALE[rating]?.label}
+              </span>
+              <span className="text-zinc-500 text-[10px]">
+                {BEHAVIOR_SCALE[rating]?.desc}
+              </span>
+            </div>
+          </div>
+
+          {/* Feedback Notes */}
+          <div>
+            <label className="form-label text-xs">
+              Private Artisan Notes (Optional)
+            </label>
+            <textarea
+              className="form-input text-xs"
+              rows={3}
+              placeholder="e.g. Respectful customer, clear instructions, provided clean work space, and settled bill immediately..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
+            <span className="text-[10px] text-zinc-400 mt-1 block">
+              Helps fellow artisans know what to expect when visiting this location.
+            </span>
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn-secondary text-xs py-2 px-4 font-semibold"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn-primary text-xs py-2 px-5 font-semibold flex items-center gap-1.5"
+            >
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+              <span>Save Behavior Rating</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// --- Customer Behavior Intel Modal (Worker-Only) ---------------------------
+interface CustomerIntelModalProps {
+  customerId: string;
+  customerName: string;
+  onClose: () => void;
+}
+
+function CustomerIntelModal({ customerId, customerName, onClose }: CustomerIntelModalProps) {
+  const reviews = dataService.getCustomerWorkerReviews(customerId);
+  const ratingData = dataService.getCustomerBehaviorRating(customerId);
+
+  return (
+    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal-box modal-box-lg p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center font-black text-base shadow-sm">
+              {customerName.charAt(0)}
+            </div>
+            <div>
+              <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base leading-tight tracking-tight">
+                {customerName} — Resident Behavior History
+              </h3>
+              <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5">
+                <Shield className="w-3 h-3 text-zinc-400" />
+                <span>Confidential Artisan Intelligence · Private to Workers</span>
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400">
+            <XCircle className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Behavior Summary Card */}
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 flex items-center justify-between gap-4">
+          <div>
+            <span className="text-[10px] text-zinc-400 block font-bold uppercase tracking-wider">
+              Overall Behavior Trust Score
+            </span>
+            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50 tabular-nums flex items-center gap-1.5 mt-0.5">
+              <span>{ratingData.totalReviews > 0 ? ratingData.averageRating.toFixed(1) : '5.0'}</span>
+              <span className="text-sm font-bold text-zinc-400">/ 5.0</span>
+            </div>
+            <span className="text-[11px] text-zinc-500">
+              Based on {ratingData.totalReviews} verified artisan ratings
+            </span>
+          </div>
+
+          <div className="text-right">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700/60 inline-block">
+              {ratingData.averageRating >= 4.5 ? 'Highly Recommended' : ratingData.averageRating >= 3.5 ? 'Standard Resident' : 'Caution Advised'}
+            </span>
+          </div>
+        </div>
+
+        {/* Reviews List */}
+        <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+          {reviews.length === 0 ? (
+            <div className="p-8 text-center text-xs text-zinc-400 space-y-2">
+              <MessageSquare className="w-8 h-8 mx-auto text-zinc-300 dark:text-zinc-700" />
+              <p className="font-semibold text-zinc-700 dark:text-zinc-300">No written artisan feedback yet</p>
+              <p className="text-[11px]">This resident currently holds a clean 5.0 baseline. You can be the first to leave behavior notes after finishing a job.</p>
+            </div>
+          ) : (
+            reviews.map((r) => (
+              <div key={r.id} className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-zinc-900 dark:text-zinc-50">
+                      {r.workerName || 'Artisan Partner'}
+                    </span>
+                    <span className="text-[10px] text-zinc-400">
+                      ({r.serviceName})
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-zinc-400">
+                    {r.workerReviewedCustomerAt ? formatDate(r.workerReviewedCustomerAt) : 'Recent'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-1">
+                    Behavior Score: {r.workerCustomerBehaviorRating || 5} / 5
+                  </span>
+                </div>
+
+                {r.workerCustomerReviewComment && (
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 italic pt-0.5 leading-relaxed">
+                    &ldquo;{r.workerCustomerReviewComment}&rdquo;
+                  </p>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="pt-2 flex justify-end">
+          <button onClick={onClose} className="btn-secondary text-xs py-2 px-4 font-semibold">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // --- Main Worker Dashboard Page --------------------------------------------
 export default function WorkerDashboardPage() {
   const router = useRouter();
@@ -458,6 +736,8 @@ export default function WorkerDashboardPage() {
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [invoicingBooking, setInvoicingBooking] = useState<Booking | null>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [reviewingCustomerBooking, setReviewingCustomerBooking] = useState<Booking | null>(null);
+  const [selectedCustomerForIntel, setSelectedCustomerForIntel] = useState<{ customerId: string; customerName: string } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [settlingDues, setSettlingDues] = useState(false);
 
@@ -478,6 +758,14 @@ export default function WorkerDashboardPage() {
     if (sData) setSociety(sData);
     setLoading(false);
   }, []);
+
+  function handleCustomerReviewSubmitted(rating: number, comment: string) {
+    if (!reviewingCustomerBooking) return;
+    dataService.submitWorkerCustomerReview(reviewingCustomerBooking.id, rating, comment);
+    setReviewingCustomerBooking(null);
+    showToast('Resident behavior review saved! Visible only to cooperative artisans.');
+    if (currentUser) refreshData(currentUser.id);
+  }
 
   // Auth Guard
   useEffect(() => {
@@ -852,7 +1140,7 @@ export default function WorkerDashboardPage() {
               <p className="text-xs text-zinc-400">Ensure your status is Online to receive new requests.</p>
             </div>
           ) : (
-            incomingRequests.map((bk) => (
+              incomingRequests.map((bk) => (
               <div key={bk.id} className="card p-5 space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -877,6 +1165,35 @@ export default function WorkerDashboardPage() {
                     <p className="text-zinc-800 dark:text-zinc-200">&quot;{bk.problemDescription}&quot;</p>
                   </div>
                 )}
+
+                {/* Resident Behavior Trust Score (Worker-Only Intel) */}
+                {(() => {
+                  const custRating = dataService.getCustomerBehaviorRating(bk.customerId);
+                  return (
+                    <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <Shield className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+                        <div>
+                          <span className="text-zinc-500 font-medium">Resident Behavior Score:</span>{' '}
+                          <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
+                            {custRating.totalReviews > 0 ? `${custRating.averageRating.toFixed(1)} / 5.0` : '5.0 / 5.0 (New)'}
+                          </span>
+                          <span className="text-[10px] text-zinc-400 ml-1">
+                            ({custRating.totalReviews} worker {custRating.totalReviews === 1 ? 'review' : 'reviews'} · Artisan Intel)
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCustomerForIntel({ customerId: bk.customerId, customerName: bk.customerName })}
+                        className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50 underline flex items-center gap-0.5 transition-colors"
+                      >
+                        Artisan Intel ↗
+                      </button>
+                    </div>
+                  );
+                })()}
 
                 <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
                   <button
@@ -920,7 +1237,11 @@ export default function WorkerDashboardPage() {
                   <span className="badge bg-zinc-100 text-zinc-700 border-zinc-200">In Progress</span>
                 </div>
 
-                <CustomerContactCard booking={bk} workerName={currentUser.name} />
+                <CustomerContactCard
+                  booking={bk}
+                  workerName={currentUser.name}
+                  onViewIntel={() => setSelectedCustomerForIntel({ customerId: bk.customerId, customerName: bk.customerName })}
+                />
 
                 <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
                   <button
@@ -1014,7 +1335,7 @@ export default function WorkerDashboardPage() {
           )}
         </section>
 
-        {/* -- 4. Completed Service History -- */}
+        {/* -- 4. Completed Service History & Resident Rating -- */}
         <section className="space-y-3">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-zinc-800" />
@@ -1030,17 +1351,49 @@ export default function WorkerDashboardPage() {
           ) : (
             <div className="space-y-3">
               {completedJobsList.map((bk) => (
-                <div key={bk.id} className="card p-4 flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <div className="font-bold text-zinc-900 dark:text-zinc-50 text-sm">{bk.serviceName}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">
-                      Customer: {bk.customerName} · Settled via {bk.paymentMethod || 'Direct'}
+                <div key={bk.id} className="card p-4 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="font-bold text-zinc-900 dark:text-zinc-50 text-sm">{bk.serviceName}</div>
+                      <div className="text-xs text-zinc-500 mt-0.5">
+                        Customer: {bk.customerName} · Settled via {bk.paymentMethod || 'Direct'}
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="text-sm font-black text-zinc-900 dark:text-zinc-50">{formatCurrency(bk.subtotalAmount || bk.totalAmount)}</div>
+                      <div className="text-[10px] text-zinc-400">{formatDateTime(bk.completedAt || bk.createdAt)}</div>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <div className="text-sm font-black text-zinc-900 dark:text-zinc-50">{formatCurrency(bk.subtotalAmount || bk.totalAmount)}</div>
-                    <div className="text-[10px] text-zinc-400">{formatDateTime(bk.completedAt || bk.createdAt)}</div>
+                  {/* Worker-Only Resident Review Action Bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
+                    <div className="text-xs text-zinc-500">
+                      {bk.workerCustomerBehaviorRating !== undefined ? (
+                        <span className="inline-flex items-center gap-1.5 font-semibold text-zinc-800 dark:text-zinc-200">
+                          <Shield className="w-3.5 h-3.5 text-zinc-500" />
+                          Resident Behavior: <strong>{bk.workerCustomerBehaviorRating}/5</strong>
+                          <span className="text-[10px] text-zinc-400 font-normal">(Private Artisan Intel)</span>
+                        </span>
+                      ) : (
+                        <span className="text-zinc-400 text-[11px]">
+                          Help fellow artisans: Rate resident behavior and cooperation.
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setReviewingCustomerBooking(bk)}
+                      className={`text-xs py-1.5 px-3 font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                        bk.workerCustomerBehaviorRating !== undefined
+                          ? 'btn-secondary text-zinc-700 dark:text-zinc-300'
+                          : 'btn-primary'
+                      }`}
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>{bk.workerCustomerBehaviorRating !== undefined ? 'Edit Behavior Rating' : 'Rate Resident Behavior'}</span>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -1096,7 +1449,7 @@ export default function WorkerDashboardPage() {
 
                     {r.reviewComment ? (
                       <p className="text-xs text-zinc-700 dark:text-zinc-300 italic pt-0.5 leading-relaxed">
-                        "{r.reviewComment}" 
+                        &ldquo;{r.reviewComment}&rdquo; 
                       </p>
                     ) : (
                       <p className="text-xs text-zinc-400 italic">
@@ -1136,6 +1489,24 @@ export default function WorkerDashboardPage() {
         />
       )}
 
+      {/* -- Worker Customer Behavior Review Modal (Confidential) -- */}
+      {reviewingCustomerBooking && (
+        <WorkerCustomerReviewModal
+          booking={reviewingCustomerBooking}
+          onClose={() => setReviewingCustomerBooking(null)}
+          onSubmitReview={handleCustomerReviewSubmitted}
+        />
+      )}
+
+      {/* -- Customer Behavior Intel Modal (Worker-Only) -- */}
+      {selectedCustomerForIntel && (
+        <CustomerIntelModal
+          customerId={selectedCustomerForIntel.customerId}
+          customerName={selectedCustomerForIntel.customerName}
+          onClose={() => setSelectedCustomerForIntel(null)}
+        />
+      )}
+
       {/* Footer */}
       <footer className="bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800/60 py-4 mt-8">
         <div className="max-w-6xl mx-auto px-4 text-center text-xs text-zinc-400">
@@ -1145,6 +1516,7 @@ export default function WorkerDashboardPage() {
     </div>
   );
 }
+
 
 
 
