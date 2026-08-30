@@ -848,6 +848,20 @@ export const dataService = {
     return this.payWorkerDues(userId);
   },
 
+  terminateWorker(userId: string): boolean {
+    let workers = this.getWorkers();
+    const beforeLen = workers.length;
+    workers = workers.filter((w) => w.userId !== userId && w.id !== userId);
+    setItem(LS_KEY_WORKERS, workers);
+
+    let users = this.getUsers();
+    users = users.filter((u) => u.id !== userId);
+    setItem(LS_KEY_USERS, users);
+
+    pushToCloud();
+    return workers.length < beforeLen;
+  },
+
   getBookings(): Booking[] {
     return getItem<Booking[]>(LS_KEY_BOOKINGS, seedBookings);
   },

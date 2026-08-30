@@ -6,11 +6,11 @@ import {
   Leaf, LogOut, Shield, Users, BadgeCheck, XCircle,
   CheckCircle, IndianRupee, Edit3, Save, X, Eye,
   Loader2, AlertTriangle, TrendingUp, CalendarDays,
-  Coins, Building2, Wrench, RefreshCw
+  Coins, Building2, Wrench, RefreshCw, Star, MessageSquare, UserX
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import dataService, { WorkerProfile, Service, Society, User } from '@/lib/dataService';
-import { formatCurrency, getBadgeClass, getStatusReadableLabel } from '@/lib/utils';
+import { formatCurrency, formatDate, getBadgeClass, getStatusReadableLabel } from '@/lib/utils';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -33,6 +33,7 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [updatingKycId, setUpdatingKycId] = useState<string | null>(null);
   const [selectedWorkerKyc, setSelectedWorkerKyc] = useState<WorkerProfile | null>(null);
+  const [selectedWorkerForReviews, setSelectedWorkerForReviews] = useState<WorkerProfile | null>(null);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [editPriceValue, setEditPriceValue] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -125,6 +126,18 @@ export default function AdminDashboardPage() {
     const updated = dataService.adminClearWorkerDues(userId);
     if (updated) {
       showToast(`Dues cleared & ${workerName}'s account has been Unsuspended/Reactivated.`);
+      fetchData();
+    }
+  }
+
+  // Terminate / Fire Worker from Cooperative
+  function handleTerminateWorker(userId: string, workerName: string) {
+    if (!confirm(`Are you sure you want to terminate / deregister artisan "${workerName}" from the cooperative society? Their profile and account will be permanently removed.`)) {
+      return;
+    }
+    const success = dataService.terminateWorker(userId);
+    if (success) {
+      showToast(`Artisan "${workerName}" has been terminated and removed from the cooperative registry.`);
       fetchData();
     }
   }
@@ -360,31 +373,50 @@ export default function AdminDashboardPage() {
                     <th className="px-4 py-3 text-right">Administrative Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/60">
                   {workers.map((w) => {
                     const dues = w.outstandingDues || 0;
                     const isSuspended = w.accountStatus === 'SUSPENDED_UNPAID_DUES' || dues >= 300;
+                    const reviewsCount = dataService.getWorkerReviews(w.userId).length;
 
                     return (
-                      <tr key={w.id} className="hover:bg-zinc-50/70 transition-colors">
+                      <tr key={w.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/60 transition-colors">
                         <td className="px-4 py-3.5">
-                          <div className="font-bold text-slate-900 text-sm">{w.name}</div>
-                          <div className="text-zinc-400 text-[11px]">{w.phone} · {w.email}</div>
+                          <div className="font-bold text-zinc-900 dark:text-zinc-50 text-sm">{w.name}</div>
+                          <div className="text-zinc-500 text-[11px] font-mono">{w.phone} · {w.email}</div>
                         </td>
-                        <td className="px-4 py-3.5 font-semibold text-slate-700">
+                        <td className="px-4 py-3.5 font-semibold text-zinc-700 dark:text-zinc-300">
                           {w.trade}
                         </td>
-                        <td className="px-4 py-3.5 space-y-0.5">
-                          <div> Quality: <strong>{(w.qualityRating || 4.9).toFixed(1)}/5</strong></div>
-                          <div> Behavior: <strong>{(w.behaviorRating || 4.8).toFixed(1)}/5</strong></div>
-                          <div className="text-emerald-700 font-bold">ðŸ·ï¸ Pricing: <strong>{(w.pricingRating || 4.9).toFixed(1)}/5</strong> ({w.fairPricingPercentage || 98}%)</div>
+                        <td className="px-4 py-3.5 space-y-1">
+                          <div className="flex items-center gap-1 text-zinc-700 dark:text-zinc-300 text-xs">
+                            <span className="text-zinc-500">Quality:</span>
+                            <strong className="text-zinc-900 dark:text-zinc-50 tabular-nums">{(w.qualityRating || 5.0).toFixed(1)}/5</strong>
+                          </div>
+                          <div className="flex items-center gap-1 text-zinc-700 dark:text-zinc-300 text-xs">
+                            <span className="text-zinc-500">Behavior:</span>
+                            <strong className="text-zinc-900 dark:text-zinc-50 tabular-nums">{(w.behaviorRating || 5.0).toFixed(1)}/5</strong>
+                          </div>
+                          <div className="flex items-center gap-1 text-zinc-700 dark:text-zinc-300 text-xs">
+                            <span className="text-zinc-500">Pricing:</span>
+                            <strong className="text-zinc-900 dark:text-zinc-50 tabular-nums">{(w.pricingRating || 5.0).toFixed(1)}/5</strong>
+                            <span className="text-[10px] text-zinc-400">({w.fairPricingPercentage || 100}%)</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedWorkerForReviews(w)}
+                            className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50 underline flex items-center gap-1 pt-1"
+                          >
+                            <MessageSquare className="w-3 h-3" />
+                            <span>View Resident Reviews ({reviewsCount}) ↗</span>
+                          </button>
                         </td>
                         <td className="px-4 py-3.5">
-                          <span className={`text-sm font-black ${dues >= 300 ? 'text-zinc-700' : 'text-slate-900'}`}>
+                          <span className={`text-sm font-black tabular-nums ${dues >= 300 ? 'text-zinc-900 dark:text-zinc-50' : 'text-zinc-700 dark:text-zinc-300'}`}>
                             {formatCurrency(dues)}
                           </span>
                           {dues >= 300 && (
-                            <span className="text-[10px] text-zinc-700 block font-bold">Exceeds limit</span>
+                            <span className="text-[10px] text-red-600 dark:text-red-400 block font-bold">Exceeds limit</span>
                           )}
                         </td>
                         <td className="px-4 py-3.5">
@@ -393,16 +425,23 @@ export default function AdminDashboardPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3.5 text-right">
-                          {dues > 0 ? (
+                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                            {dues > 0 && (
+                              <button
+                                onClick={() => handleClearWorkerDues(w.userId, w.name)}
+                                className="btn-primary text-[11px] py-1 px-2.5 font-bold shadow-sm"
+                              >
+                                Clear Dues
+                              </button>
+                            )}
                             <button
-                              onClick={() => handleClearWorkerDues(w.userId, w.name)}
-                              className="btn-success text-xs py-1 px-3 font-bold shadow-sm"
+                              onClick={() => handleTerminateWorker(w.userId, w.name)}
+                              className="btn-secondary text-[11px] py-1 px-2 font-semibold text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-1"
+                              title={`Terminate and remove ${w.name}`}
                             >
-                              Clear Dues & Unsuspend
+                              <UserX className="w-3.5 h-3.5" /> Fire / Remove
                             </button>
-                          ) : (
-                            <span className="text-zinc-400 text-[11px] font-medium">— No Dues</span>
-                          )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -633,8 +672,114 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
+      {/* Artisan Customer Reviews & Ratings Modal */}
+      {selectedWorkerForReviews && (
+        <div className="modal-backdrop" onClick={() => setSelectedWorkerForReviews(null)}>
+          <div className="modal-box p-6 space-y-4 max-w-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center font-bold text-sm">
+                  {selectedWorkerForReviews.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-sm">
+                    {selectedWorkerForReviews.name} — Resident Reviews
+                  </h3>
+                  <p className="text-xs text-zinc-500">
+                    {selectedWorkerForReviews.trade} · {selectedWorkerForReviews.localSociety || 'Primary Cooperative Society'}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedWorkerForReviews(null)} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 3-Factor Overall Score Card */}
+            <div className="grid grid-cols-3 gap-2 p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-center text-xs">
+              <div>
+                <span className="text-[10px] text-zinc-500 block font-medium">Work Quality</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
+                  {(selectedWorkerForReviews.qualityRating || 5.0).toFixed(1)} / 5.0
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-zinc-500 block font-medium">Behavior & Respect</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
+                  {(selectedWorkerForReviews.behaviorRating || 5.0).toFixed(1)} / 5.0
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-zinc-500 block font-medium">Fair Pricing</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
+                  {(selectedWorkerForReviews.pricingRating || 5.0).toFixed(1)} / 5.0
+                </span>
+              </div>
+            </div>
+
+            {/* Customer Reviews List */}
+            <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+              {(() => {
+                const reviews = dataService.getWorkerReviews(selectedWorkerForReviews.userId);
+                if (reviews.length === 0) {
+                  return (
+                    <div className="p-8 text-center text-xs text-zinc-400">
+                      No customer written reviews recorded yet for this artisan.
+                    </div>
+                  );
+                }
+
+                return reviews.map((r) => (
+                  <div key={r.id} className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-zinc-900 dark:text-zinc-50">
+                        {r.customerName || 'Verified Resident'}
+                      </span>
+                      <span className="text-[10px] text-zinc-400">
+                        {r.reviewedAt ? formatDate(r.reviewedAt) : 'Recent'}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 text-[10px]">
+                      <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-700 dark:text-zinc-300 font-semibold">
+                        Skill: {r.qualityRating || 5}/5
+                      </span>
+                      <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded text-zinc-700 dark:text-zinc-300 font-semibold">
+                        Behavior: {r.behaviorRating || 5}/5
+                      </span>
+                      <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded font-bold">
+                        Pricing: {r.pricingRating || 5}/5
+                      </span>
+                    </div>
+
+                    {r.reviewComment ? (
+                      <p className="text-xs text-zinc-700 dark:text-zinc-300 italic pt-0.5 leading-relaxed">
+                        &ldquo;{r.reviewComment}&rdquo;
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-zinc-400 italic">
+                        (Rating verified upon job completion)
+                      </p>
+                    )}
+                  </div>
+                ));
+              })()}
+            </div>
+
+            <div className="pt-2 flex justify-end border-t border-zinc-100 dark:border-zinc-800/60">
+              <button
+                onClick={() => setSelectedWorkerForReviews(null)}
+                className="btn-secondary text-xs py-2 px-4 font-semibold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
-      <footer className="bg-white border-t border-zinc-200 py-4 mt-8">
+      <footer className="bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800/60 py-4 mt-8">
         <div className="max-w-7xl mx-auto px-4 text-center text-xs text-zinc-400">
           PACS Governance Console · Primary Cooperative Services Society System
         </div>
