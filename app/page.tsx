@@ -284,7 +284,7 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
                     : 'border-zinc-200 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
                 }`}
               >
-                <div className="font-bold">Resident / Customer</div>
+                <div className="font-bold">Customer</div>
                 <div className="text-[10px] opacity-75 mt-0.5">Book local verified services</div>
               </button>
 
@@ -297,7 +297,7 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
                     : 'border-zinc-200 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
                 }`}
               >
-                <div className="font-bold">Artisan / Worker</div>
+                <div className="font-bold">Worker</div>
                 <div className="text-[10px] opacity-75 mt-0.5">Offer trade services with PACS</div>
               </button>
             </div>
@@ -361,7 +361,7 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
             </div>
 
             <div>
-              <label className="form-label">Village / Ward Address</label>
+              <label className="form-label">Address</label>
               <input
                 type="text"
                 className="form-input"
@@ -485,6 +485,10 @@ function WorkerBookingModal({ worker, tradeBasePrice, user, onClose, onBookingSu
       setError('Please provide your service address and contact phone number.');
       return;
     }
+    if (!problemDescription.trim()) {
+      setError('Please describe the issue or problem requiring service.');
+      return;
+    }
     const cleanPhone = phone.replace(/\D/g, '');
     if (cleanPhone.length < 10) {
       setError('Please enter a valid 10-digit phone number.');
@@ -592,13 +596,16 @@ function WorkerBookingModal({ worker, tradeBasePrice, user, onClose, onBookingSu
           </div>
 
           <div>
-            <label className="form-label text-xs">Describe the Issue (Optional)</label>
+            <label className="form-label text-xs">
+              Describe the Issue <span className="text-red-500">*</span>
+            </label>
             <textarea
               className="form-input text-xs"
               rows={2}
               placeholder="e.g. Main switchboard tripping or leaking kitchen tap..."
               value={problemDescription}
               onChange={(e) => setProblemDescription(e.target.value)}
+              required
             />
           </div>
 
@@ -704,14 +711,14 @@ function PostServicePaymentModal({ booking, onClose, onConfirm }: PostServicePay
           )}
 
           <div className="flex justify-between font-bold text-zinc-900 dark:text-zinc-50 pt-1 border-t border-zinc-100 dark:border-zinc-800/60">
-            <span>Artisan Fee (100% Payout):</span>
-            <span className="tabular-nums">{formatCurrency(subtotal)}</span>
+            <span>Worker Fee (100% Payout):</span>
+            <span className="tabular-nums font-bold text-zinc-900 dark:text-zinc-50">{formatCurrency(subtotal)}</span>
           </div>
 
-          <div className="flex justify-between text-zinc-500 dark:text-zinc-400">
+          <div className="flex items-center justify-between text-xs text-zinc-600 dark:text-zinc-400">
             <div>
-              <span>PACS Community Platform Fee (5%):</span>
-              <span className="text-[10px] text-zinc-400 block">Supports Cooperative Society & Artisan Welfare Pool</span>
+              <span className="font-semibold">PACS Community Platform Fee (5%):</span>
+              <span className="text-[10px] text-zinc-400 block">Supports Cooperative Society & Worker Welfare Pool</span>
             </div>
             <span className="tabular-nums font-semibold">+{formatCurrency(platformFee)}</span>
           </div>
@@ -729,7 +736,7 @@ function PostServicePaymentModal({ booking, onClose, onConfirm }: PostServicePay
             <Shield className="w-3.5 h-3.5 text-zinc-500" /> Direct Payout Guarantee
           </div>
           <p className="text-[11px] leading-relaxed">
-            {formatCurrency(subtotal)} (100% of labor/parts) is transferred directly to {booking.workerName || 'the artisan'}. {formatCurrency(platformFee)} (5%) goes to the Primary Cooperative Society Welfare Reserve.
+            {formatCurrency(subtotal)} (100% of labor/parts) is transferred directly to {booking.workerName || 'the worker'}. {formatCurrency(platformFee)} (5%) goes to the Primary Cooperative Society Welfare Reserve.
           </p>
         </div>
 
@@ -925,10 +932,10 @@ function WorkerReviewsModal({ worker, reviews, onClose }: WorkerReviewsModalProp
             </div>
             <div>
               <h3 className="font-black text-zinc-900 dark:text-zinc-50 text-base leading-tight tracking-tight">
-                {worker.name} — Verified Resident Reviews
+                {worker.name} — Verified Customer Reviews
               </h3>
               <p className="text-xs text-zinc-500">
-                {worker.trade} Artisan · {worker.localSociety || 'Primary Cooperative Society'}
+                {worker.trade} Worker · {worker.localSociety || 'Primary Cooperative Society'}
               </p>
             </div>
           </div>
@@ -970,7 +977,7 @@ function WorkerReviewsModal({ worker, reviews, onClose }: WorkerReviewsModalProp
                       {(r.customerName || 'R').charAt(0)}
                     </div>
                     <span className="font-bold text-zinc-900 dark:text-zinc-50 text-xs">
-                      {r.customerName || 'Verified Resident'}
+                      {r.customerName || 'Verified Customer'}
                     </span>
                   </div>
                   <span className="text-[10px] text-zinc-400">
@@ -1103,7 +1110,7 @@ export default function MarketplacePage() {
     if (!confirm('Are you sure you want to cancel this service request? This action is only allowed while the artisan has not yet accepted the job.')) {
       return;
     }
-    const res = dataService.cancelBooking(bookingId, 'Cancelled by resident before acceptance');
+    const res = dataService.cancelBooking(bookingId, 'Cancelled by customer before acceptance');
     if (res.success) {
       refreshData(currentUser);
     } else {
@@ -1116,9 +1123,9 @@ export default function MarketplacePage() {
     return found?.basePrice || found?.price || 150;
   }
 
-  // Filter Active, Non-Suspended, KYC Verified Artisans Only
+  // Filter Active, Non-Suspended, KYC Verified Workers Only
   const eligibleWorkers = workers.filter((w) => {
-    // Only verified artisans can be listed or booked by residents
+    // Only verified workers can be listed or booked by customers
     if (w.kycStatus !== 'VERIFIED') return false;
 
     const isSuspended = w.accountStatus === 'SUSPENDED_UNPAID_DUES' || (w.outstandingDues || 0) >= 300;
@@ -1149,18 +1156,19 @@ export default function MarketplacePage() {
                 SahakarGig
               </span>
               <span className="text-[10px] sm:text-[11px] font-medium text-zinc-500 leading-none block truncate max-w-[130px] xs:max-w-[200px] sm:max-w-none mt-1">
-                Direct Cooperative Artisan Discovery
+                Direct Cooperative Worker Discovery
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <ThemeToggle />
             {currentUser ? (
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="hidden md:block text-right">
                   <div className="text-xs font-bold text-zinc-900 dark:text-zinc-50">{currentUser.name}</div>
                   <div className="text-[10px] text-zinc-500 font-semibold">
-                    {currentUser.role === 'WORKER' ? 'Artisan Partner' : 'Resident Customer'}
+                    {currentUser.role === 'WORKER' ? 'Worker' : 'Customer'}
                   </div>
                 </div>
                 {currentUser.role === 'WORKER' && (
@@ -1168,7 +1176,7 @@ export default function MarketplacePage() {
                     onClick={() => router.push('/worker')}
                     className="btn-primary py-1.5 px-2.5 sm:px-3 text-xs font-semibold whitespace-nowrap"
                   >
-                    Artisan Desk
+                    Worker Desk
                   </button>
                 )}
                 <button
@@ -1206,7 +1214,7 @@ export default function MarketplacePage() {
           <div className="space-y-12 animate-fadein">
             <section className="text-center py-10 sm:py-16 space-y-6">
               <h1 className="text-4xl sm:text-5xl font-black text-zinc-900 dark:text-zinc-50 tracking-tight max-w-3xl mx-auto leading-[1.1]">
-                Book Certified Local Artisans.{' '}
+                Book Certified Local Workers.{' '}
                 <span className="text-zinc-500 dark:text-zinc-400">Pay Only After Work is Done.</span>
               </h1>
 
@@ -1291,10 +1299,10 @@ export default function MarketplacePage() {
                   </div>
                   <div>
                     <div className="font-bold text-zinc-900 dark:text-zinc-50 text-xs">
-                      Artisan Account Active: {currentUser.name} ({currentUser.trade || 'Technician'})
+                      Worker Account Active: {currentUser.name} ({currentUser.trade || 'Technician'})
                     </div>
                     <div className="text-[11px] text-zinc-500">
-                      Service booking requests can only be placed from a Resident Customer account. To manage incoming jobs, use your Artisan Desk.
+                      Service booking requests can only be placed from a Customer account. To manage incoming jobs, use your Worker Desk.
                     </div>
                   </div>
                 </div>
@@ -1302,7 +1310,7 @@ export default function MarketplacePage() {
                   onClick={() => router.push('/worker')}
                   className="btn-primary text-xs py-2 px-4 font-semibold whitespace-nowrap self-start sm:self-auto"
                 >
-                  Go to Artisan Desk →
+                  Go to Worker Desk →
                 </button>
               </div>
             )}
@@ -1318,7 +1326,7 @@ export default function MarketplacePage() {
                       : 'border-transparent text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
                   }`}
                 >
-                  Discover Verified Artisans
+                  Discover Verified Workers
                 </button>
                 {currentUser?.role !== 'WORKER' && (
                   <button
@@ -1477,7 +1485,7 @@ export default function MarketplacePage() {
                               </div>
                             </div>
 
-                            {/* Verified Resident Reviews Snippet & Expand Action */}
+                            {/* Verified Customer Reviews Snippet & Expand Action */}
                             {(() => {
                               const workerReviews = dataService.getWorkerReviews(w.userId);
                               const topReview = workerReviews[0];
@@ -1488,7 +1496,7 @@ export default function MarketplacePage() {
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5 font-bold text-zinc-900 dark:text-zinc-50">
                                       <MessageSquare className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                                      <span>Resident Reviews</span>
+                                      <span>Customer Reviews</span>
                                       <span className="text-[10px] text-zinc-400 font-semibold">({workerReviews.length})</span>
                                     </div>
 
@@ -1511,7 +1519,7 @@ export default function MarketplacePage() {
                                       </p>
                                       <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5 border-t border-zinc-200/50 dark:border-zinc-700/30">
                                         <span className="font-semibold text-zinc-500">
-                                          — {topReview.customerName || 'Verified Resident'}
+                                          — {topReview.customerName || 'Verified Customer'}
                                         </span>
                                         <button
                                           type="button"
@@ -1524,7 +1532,7 @@ export default function MarketplacePage() {
                                     </div>
                                   ) : (
                                     <div className="text-[11px] text-zinc-500 flex items-center justify-between">
-                                      <span>PACS Verified Artisan</span>
+                                      <span>PACS Verified Worker</span>
                                       <span className="text-[10px] text-zinc-500 font-semibold">Quality Audited</span>
                                     </div>
                                   )}
@@ -1536,7 +1544,7 @@ export default function MarketplacePage() {
                                         <div key={r.id} className="p-2.5 rounded-lg bg-white dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/60 space-y-1 text-xs">
                                           <div className="flex items-center justify-between text-[10px]">
                                             <span className="font-bold text-zinc-800 dark:text-zinc-200">
-                                              {r.customerName || 'Verified Resident'}
+                                              {r.customerName || 'Verified Customer'}
                                             </span>
                                             <span className="text-zinc-400">
                                               {r.reviewedAt ? formatDate(r.reviewedAt) : 'Recent'}
@@ -1584,7 +1592,7 @@ export default function MarketplacePage() {
                                 className="btn-secondary text-xs py-1.5 px-3 font-semibold"
                                 title="Worker accounts cannot book services. Switch to customer account to book."
                               >
-                                Artisan View
+                                Worker View
                               </button>
                             ) : (
                               <button
@@ -1657,7 +1665,7 @@ export default function MarketplacePage() {
                         {/* Bill Breakdown with 5% PACS Platform Fee */}
                         <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs space-y-1">
                           <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
-                            <span>Artisan Labor & Diagnostic Subtotal:</span>
+                            <span>Worker Labor & Diagnostic Subtotal:</span>
                             <span className="font-semibold text-zinc-900 dark:text-zinc-50 tabular-nums">
                               {formatCurrency(bk.subtotalAmount || bk.basePrice || 150)}
                             </span>
@@ -1679,7 +1687,7 @@ export default function MarketplacePage() {
                           <div className="p-3.5 bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 rounded-xl text-xs text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
                             <Clock className="w-4 h-4 text-zinc-500 shrink-0" />
                             <span>
-                              Artisan <strong className="text-zinc-900 dark:text-zinc-50">{bk.workerName}</strong> has accepted your request and is performing the service. No payment is required until work is completed.
+                              Worker <strong className="text-zinc-900 dark:text-zinc-50">{bk.workerName}</strong> has accepted your request and is performing the service. No payment is required until work is completed.
                             </span>
                           </div>
                         )}
@@ -1693,7 +1701,7 @@ export default function MarketplacePage() {
                                 Service Completed by {bk.workerName} • Pay {formatCurrency(bk.totalAmount)}
                               </div>
                               <div className="text-zinc-400 dark:text-zinc-600 mt-0.5 font-medium">
-                                Pay securely online right now, or hand cash directly to the artisan on site.
+                                Pay securely online right now, or hand cash directly to the worker on site.
                               </div>
                             </div>
                             <button
@@ -1720,7 +1728,7 @@ export default function MarketplacePage() {
                           <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
                             <div className="text-xs text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
                               <Clock className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                              <span>Waiting for artisan acceptance. You may cancel anytime before they confirm.</span>
+                              <span>Waiting for worker acceptance. You may cancel anytime before they confirm.</span>
                             </div>
                             <button
                               type="button"
@@ -1736,7 +1744,7 @@ export default function MarketplacePage() {
                           <div className="flex items-center justify-between text-[11px] text-zinc-500 pt-1 border-t border-zinc-100 dark:border-zinc-800/60">
                             <span className="flex items-center gap-1.5 font-medium">
                               <Shield className="w-3.5 h-3.5 text-zinc-500" />
-                              Artisan Agreed & Dispatched
+                              Worker Agreed & Dispatched
                             </span>
                             <span className="font-semibold text-zinc-400">
                               Non-Cancellable Policy Active
@@ -1810,7 +1818,7 @@ export default function MarketplacePage() {
 
                             {bk.workerName && (
                               <div className="text-xs text-zinc-500 text-center pt-1">
-                                Assigned Artisan: <strong className="text-zinc-900 dark:text-zinc-50">{bk.workerName}</strong>
+                                Assigned Worker: <strong className="text-zinc-900 dark:text-zinc-50">{bk.workerName}</strong>
                               </div>
                             )}
                           </div>

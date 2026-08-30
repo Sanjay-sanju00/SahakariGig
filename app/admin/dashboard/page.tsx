@@ -97,7 +97,7 @@ export default function AdminDashboardPage() {
     dataService.updateWorker(userId, { kycStatus: status });
     setUpdatingKycId(null);
     setSelectedWorkerKyc(null);
-    showToast(`Artisan KYC status updated to ${status}`);
+    showToast(`Worker KYC status updated to ${status}`);
     fetchData();
   }
 
@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
   function saveEditPrice(serviceId: string) {
     const newPrice = parseFloat(editPriceValue);
     if (isNaN(newPrice) || newPrice <= 0) {
-      showToast(' Please enter a valid base price.');
+      showToast('  Please enter a valid base price.');
       return;
     }
     const updated = dataService.updateServiceBasePrice(serviceId, newPrice);
@@ -132,12 +132,12 @@ export default function AdminDashboardPage() {
 
   // Terminate / Fire Worker from Cooperative
   function handleTerminateWorker(userId: string, workerName: string) {
-    if (!confirm(`Are you sure you want to terminate / deregister artisan "${workerName}" from the cooperative society? Their profile and account will be permanently removed.`)) {
+    if (!confirm(`Are you sure you want to terminate / deregister worker "${workerName}" from the cooperative society? Their profile and account will be permanently removed.`)) {
       return;
     }
     const success = dataService.terminateWorker(userId);
     if (success) {
-      showToast(`Artisan "${workerName}" has been terminated and removed from the cooperative registry.`);
+      showToast(`Worker "${workerName}" has been terminated and removed from the cooperative registry.`);
       fetchData();
     }
   }
@@ -239,16 +239,16 @@ export default function AdminDashboardPage() {
               {formatCurrency(metrics.totalOutstandingWorkerDues)}
             </div>
             <div className="text-[11px] text-zinc-400 mt-0.5">
-              {metrics.suspendedArtisans > 0 ? ` ${metrics.suspendedArtisans} Artisans Suspended` : 'All workers within ₹300 limit'}
+              {metrics.suspendedArtisans > 0 ? `  ${metrics.suspendedArtisans} Workers Suspended` : 'All workers within ₹300 limit'}
             </div>
           </div>
 
-          {/* Active Artisans & Welfare Pool */}
+          {/* Active Workers & Welfare Pool */}
           <div className="kpi-card border-l-4 border-l-violet-600">
             <div className="w-9 h-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center mb-3">
               <Users className="w-5 h-5" />
             </div>
-            <div className="text-xs text-zinc-500 font-semibold mb-0.5">Active Village Artisans</div>
+            <div className="text-xs text-zinc-500 font-semibold mb-0.5">Active Village Workers</div>
             <div className="text-2xl font-black text-violet-600">
               {metrics.activeArtisans} <span className="text-xs font-normal text-zinc-400">({metrics.verifiedArtisans} Verified)</span>
             </div>
@@ -355,7 +355,7 @@ export default function AdminDashboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-zinc-700" />
-              <h2 className="text-base font-black text-slate-900">Artisan Cash Commission Dues & Suspension Ledger</h2>
+              <h2 className="text-base font-black text-slate-900">Worker Cash Commission Dues & Suspension Ledger</h2>
             </div>
             <span className="text-xs text-zinc-500">Automated pause threshold: ₹300</span>
           </div>
@@ -365,7 +365,7 @@ export default function AdminDashboardPage() {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-zinc-200 bg-zinc-50 text-slate-600 font-bold uppercase tracking-wider text-left">
-                    <th className="px-4 py-3">Artisan Name & Contact</th>
+                    <th className="px-4 py-3">Worker Name & Contact</th>
                     <th className="px-4 py-3">Trade</th>
                     <th className="px-4 py-3">3-Factor Performance</th>
                     <th className="px-4 py-3">Outstanding Dues (₹)</th>
@@ -410,7 +410,7 @@ export default function AdminDashboardPage() {
                             className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50 underline flex items-center gap-1 pt-1"
                           >
                             <MessageSquare className="w-3 h-3" />
-                            <span>View Resident Reviews ({reviewsCount}) ↗</span>
+                            <span>View Customer Reviews ({reviewsCount}) ↗</span>
                           </button>
                         </td>
                         <td className="px-4 py-3.5">
@@ -473,26 +473,26 @@ export default function AdminDashboardPage() {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-zinc-200 bg-zinc-50 text-slate-600 font-bold uppercase tracking-wider text-left">
-                    <th className="px-4 py-3">Artisan Details</th>
-                    <th className="px-4 py-3">Primary Trade & Skills</th>
-                    <th className="px-4 py-3">Sample Identity Card</th>
-                    <th className="px-4 py-3">Completed Services</th>
+                    <th className="px-4 py-3">Worker Details</th>
+                    <th className="px-4 py-3">Trade / Skills</th>
+                    <th className="px-4 py-3">Submitted Documents</th>
                     <th className="px-4 py-3">Verification Status</th>
                     <th className="px-4 py-3 text-right">Committee Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-zinc-200">
                   {workers.map((w) => (
-                    <tr key={w.id} className="hover:bg-zinc-50/70 transition-colors">
+                    <tr key={w.id} className="hover:bg-zinc-50">
                       <td className="px-4 py-3.5">
-                        <div className="font-bold text-slate-900 text-sm">{w.name}</div>
-                        <div className="text-zinc-400 text-[11px]">{w.phone} · {w.email}</div>
+                        <div className="font-bold text-zinc-900 dark:text-zinc-50 text-sm">{w.name}</div>
+                        <div className="text-zinc-500 text-[11px] font-mono">{w.phone} · {w.email}</div>
+                        <div className="text-xs text-zinc-600 dark:text-zinc-400">{w.localSociety || 'Primary Cooperative Society'}</div>
                       </td>
                       <td className="px-4 py-3.5">
-                        <div className="font-semibold text-slate-700">{w.trade || 'Technician'}</div>
+                        <span className="font-bold text-zinc-800 dark:text-zinc-200">{w.trade}</span>
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {w.skills.slice(0, 2).map((sk) => (
-                            <span key={sk} className="text-[10px] bg-zinc-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100">
+                          {w.skills.slice(0, 3).map((sk) => (
+                            <span key={sk} className="badge bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] py-0 px-1.5">
                               {sk}
                             </span>
                           ))}
@@ -501,20 +501,11 @@ export default function AdminDashboardPage() {
                       <td className="px-4 py-3.5">
                         <button
                           onClick={() => setSelectedWorkerKyc(w)}
-                          className="flex items-center gap-2 p-1.5 bg-zinc-50/80 hover:bg-blue-100/80 dark:bg-zinc-800 dark:hover:bg-slate-700 rounded-lg border border-zinc-200 dark:border-slate-700 transition-all text-left group"
+                          className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline text-left"
                         >
-                          <div className="w-8 h-8 rounded bg-zinc-950 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                            {w.name.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-blue-900 dark:text-blue-300 text-[11px] flex items-center gap-1">
-                              <span>Preview ID Card</span>
-                              <Eye className="w-3 h-3 text-zinc-700 dark:text-zinc-300 group-hover:scale-110 transition-transform" />
-                            </div>
-                            <span className="text-[10px] text-blue-700 dark:text-zinc-400 truncate block max-w-[110px]">
-                              {w.kycDocName || 'identity_card.pdf'}
-                            </span>
-                          </div>
+                          <FileText className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate max-w-[130px]">{w.kycDocName || 'KYC Document'}</span>
+                          <Eye className="w-3 h-3 text-zinc-400 shrink-0" />
                         </button>
                       </td>
                       <td className="px-4 py-3.5 font-bold text-zinc-800 dark:text-zinc-200">
@@ -576,7 +567,7 @@ export default function AdminDashboardPage() {
             <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
               <div className="flex items-center gap-2">
                 <BadgeCheck className="w-5 h-5 text-zinc-700 dark:text-zinc-300" />
-                <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-sm">Artisan KYC Identity Card</h3>
+                <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-sm">Worker KYC Identity Card</h3>
               </div>
               <button onClick={() => setSelectedWorkerKyc(null)} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800">
                 <X className="w-4 h-4 text-zinc-400" />
@@ -591,7 +582,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div>
                     <div className="font-black text-zinc-900 dark:text-zinc-50 text-xs tracking-tight">PRIMARY COOPERATIVE SERVICES SOCIETY</div>
-                    <div className="text-[10px] text-zinc-500 font-medium">District Cooperative Federation · Artisan Registry Card</div>
+                    <div className="text-[10px] text-zinc-500 font-medium">District Cooperative Federation · Worker Registry Card</div>
                   </div>
                 </div>
                 <div className="px-2 py-0.5 rounded bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 font-mono text-[10px] font-bold">
@@ -602,13 +593,13 @@ export default function AdminDashboardPage() {
               <div className="flex gap-4 items-center">
                 <div className="w-16 h-16 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex flex-col items-center justify-center font-black text-xl shadow-md shrink-0 border-2 border-white dark:border-zinc-800">
                   {selectedWorkerKyc.name.charAt(0)}
-                  <span className="text-[9px] font-normal opacity-75 uppercase mt-0.5">Artisan</span>
+                  <span className="text-[9px] font-normal opacity-75 uppercase mt-0.5">Worker</span>
                 </div>
 
                 <div className="space-y-1 flex-1">
                   <div className="font-black text-zinc-900 dark:text-zinc-50 text-base leading-none">{selectedWorkerKyc.name}</div>
                   <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{selectedWorkerKyc.trade || 'General Maintenance'}</div>
-                  <div className="text-[11px] text-zinc-500 font-mono">Reg No: PACS-ART-{selectedWorkerKyc.userId.slice(-6).toUpperCase()}</div>
+                  <div className="text-[11px] text-zinc-500 font-mono">Reg No: PACS-WRK-{selectedWorkerKyc.userId.slice(-6).toUpperCase()}</div>
                   <div className="text-[11px] text-zinc-500">Contact: {selectedWorkerKyc.phone || '9876543210'} · {selectedWorkerKyc.email}</div>
                 </div>
               </div>
@@ -648,7 +639,7 @@ export default function AdminDashboardPage() {
                     <div className="h-64 rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden">
                       <iframe
                         src={selectedWorkerKyc.kycDocData}
-                        title="Artisan KYC PDF"
+                        title="Worker KYC PDF"
                         className="w-full h-full"
                       />
                     </div>
@@ -657,7 +648,7 @@ export default function AdminDashboardPage() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={selectedWorkerKyc.kycDocData}
-                        alt="Artisan Identity Document"
+                        alt="Worker Identity Document"
                         className="max-h-60 object-contain rounded-lg shadow-sm"
                       />
                     </div>
@@ -713,7 +704,7 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Artisan Customer Reviews & Ratings Modal */}
+      {/* Worker Customer Reviews & Ratings Modal */}
       {selectedWorkerForReviews && (
         <div className="modal-backdrop" onClick={() => setSelectedWorkerForReviews(null)}>
           <div className="modal-box p-6 space-y-4 max-w-xl" onClick={(e) => e.stopPropagation()}>
@@ -724,7 +715,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-sm">
-                    {selectedWorkerForReviews.name} — Resident Reviews
+                    {selectedWorkerForReviews.name} — Customer Reviews
                   </h3>
                   <p className="text-xs text-zinc-500">
                     {selectedWorkerForReviews.trade} · {selectedWorkerForReviews.localSociety || 'Primary Cooperative Society'}
@@ -768,7 +759,7 @@ export default function AdminDashboardPage() {
                 if (reviews.length === 0) {
                   return (
                     <div className="p-8 text-center text-xs text-zinc-400">
-                      No customer written reviews recorded yet for this artisan.
+                      No customer written reviews recorded yet for this worker.
                     </div>
                   );
                 }
@@ -777,7 +768,7 @@ export default function AdminDashboardPage() {
                   <div key={r.id} className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 space-y-1.5 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-zinc-900 dark:text-zinc-50">
-                        {r.customerName || 'Verified Resident'}
+                        {r.customerName || 'Verified Customer'}
                       </span>
                       <span className="text-[10px] text-zinc-400">
                         {r.reviewedAt ? formatDate(r.reviewedAt) : 'Recent'}

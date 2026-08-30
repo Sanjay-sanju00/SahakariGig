@@ -36,7 +36,7 @@ function CustomerContactCard({ booking, workerName, onViewIntel }: CustomerConta
   const phone = booking.customerPhone || '';
   const cleanDigits = phone.replace(/\D/g, '');
   const waUrl = `https://wa.me/91${cleanDigits}?text=${encodeURIComponent(
-    `Hello ${booking.customerName}, I am your SahakarGig artisan (${workerName}) for ${booking.serviceName}. I am contacting you regarding your service request.`
+    `Hello ${booking.customerName}, I am your SahakarGig worker (${workerName}) for ${booking.serviceName}. I am contacting you regarding your service request.`
   )}`;
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.address)}`;
 
@@ -443,13 +443,8 @@ function SubscriptionModal({ worker, monthlyRate, yearlyRate, onClose, onSubscri
         </div>
 
         {/* Benefits Note */}
-        <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs text-zinc-600 dark:text-zinc-400 space-y-1">
-          <div className="font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-zinc-700" /> Cooperative Welfare Protection
-          </div>
-          <p className="text-[11px] leading-relaxed">
-            100% of membership pass fees go into the Primary Cooperative Society Welfare Reserve for artisan healthcare and emergency funds.
-          </p>
+        <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs text-zinc-500 leading-relaxed">
+          100% of membership pass fees go into the Primary Cooperative Society Welfare Reserve for worker healthcare and emergency funds.
         </div>
 
         {/* Modal Actions */}
@@ -515,7 +510,7 @@ function WorkerCustomerReviewModal({ booking, onClose, onSubmitReview }: WorkerC
             </div>
             <div>
               <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base tracking-tight">
-                Rate Resident Behavior
+                Rate Customer Behavior
               </h3>
               <p className="text-xs text-zinc-500">
                 Customer: {booking.customerName} · {booking.serviceName}
@@ -531,10 +526,10 @@ function WorkerCustomerReviewModal({ booking, onClose, onSubmitReview }: WorkerC
         <div className="p-3 bg-zinc-100 dark:bg-zinc-900/80 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-1 text-xs">
           <div className="font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-1.5">
             <Shield className="w-3.5 h-3.5 text-zinc-500" />
-            <span>Private Artisan-Only Confidentiality</span>
+            <span>Private Worker-Only Confidentiality</span>
           </div>
           <p className="text-[11px] text-zinc-500 leading-relaxed">
-            This review is evaluated solely on <strong>customer behavior, respect, and payment cooperation</strong>. This data is strictly restricted to certified cooperative artisans on SahakarGig. <strong>The resident customer will never see this review or score.</strong>
+            This review is evaluated solely on <strong>customer behavior, respect, and payment cooperation</strong>. This data is strictly restricted to certified cooperative workers on SahakarGig. <strong>The customer will never see this review or score.</strong>
           </p>
         </div>
 
@@ -543,7 +538,7 @@ function WorkerCustomerReviewModal({ booking, onClose, onSubmitReview }: WorkerC
           <div className="p-3.5 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-zinc-900 dark:text-zinc-50">
-                Resident Behavior & Cooperation
+                Customer Behavior & Cooperation
               </label>
               <span className="text-sm font-black text-zinc-900 dark:text-zinc-50 tabular-nums">
                 {rating} / 5
@@ -581,7 +576,7 @@ function WorkerCustomerReviewModal({ booking, onClose, onSubmitReview }: WorkerC
           {/* Feedback Notes */}
           <div>
             <label className="form-label text-xs">
-              Private Artisan Notes (Optional)
+              Private Worker Notes (Optional)
             </label>
             <textarea
               className="form-input text-xs"
@@ -591,7 +586,7 @@ function WorkerCustomerReviewModal({ booking, onClose, onSubmitReview }: WorkerC
               onChange={(e) => setComment(e.target.value)}
             />
             <span className="text-[10px] text-zinc-400 mt-1 block">
-              Helps fellow artisans know what to expect when visiting this location.
+              Helps fellow workers know what to expect when visiting this location.
             </span>
           </div>
 
@@ -639,11 +634,11 @@ function CustomerIntelModal({ customerId, customerName, onClose }: CustomerIntel
             </div>
             <div>
               <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base leading-tight tracking-tight">
-                {customerName} — Resident Behavior History
+                {customerName} — Customer Behavior History
               </h3>
               <p className="text-xs text-zinc-500 flex items-center gap-1 mt-0.5">
                 <Shield className="w-3 h-3 text-zinc-400" />
-                <span>Confidential Artisan Intelligence · Private to Workers</span>
+                <span>Confidential Worker Intelligence</span>
               </p>
             </div>
           </div>
@@ -663,13 +658,13 @@ function CustomerIntelModal({ customerId, customerName, onClose }: CustomerIntel
               <span className="text-sm font-bold text-zinc-400">/ 5.0</span>
             </div>
             <span className="text-[11px] text-zinc-500">
-              Based on {ratingData.totalReviews} verified artisan ratings
+              Based on {ratingData.totalReviews} verified worker ratings
             </span>
           </div>
 
           <div className="text-right">
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700/60 inline-block">
-              {ratingData.averageRating >= 4.5 ? 'Highly Recommended' : ratingData.averageRating >= 3.5 ? 'Standard Resident' : 'Caution Advised'}
+              {ratingData.averageRating >= 4.5 ? 'Highly Recommended' : ratingData.averageRating >= 3.5 ? 'Standard Customer' : 'Caution Advised'}
             </span>
           </div>
         </div>
@@ -679,8 +674,8 @@ function CustomerIntelModal({ customerId, customerName, onClose }: CustomerIntel
           {reviews.length === 0 ? (
             <div className="p-8 text-center text-xs text-zinc-400 space-y-2">
               <MessageSquare className="w-8 h-8 mx-auto text-zinc-300 dark:text-zinc-700" />
-              <p className="font-semibold text-zinc-700 dark:text-zinc-300">No written artisan feedback yet</p>
-              <p className="text-[11px]">This resident currently holds a clean 5.0 baseline. You can be the first to leave behavior notes after finishing a job.</p>
+              <p className="font-semibold text-zinc-700 dark:text-zinc-300">No written worker feedback yet</p>
+              <p className="text-[11px]">This customer currently holds a clean 5.0 baseline. You can be the first to leave behavior notes after finishing a job.</p>
             </div>
           ) : (
             reviews.map((r) => (
@@ -688,7 +683,7 @@ function CustomerIntelModal({ customerId, customerName, onClose }: CustomerIntel
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-zinc-900 dark:text-zinc-50">
-                      {r.workerName || 'Artisan Partner'}
+                      {r.workerName || 'Worker'}
                     </span>
                     <span className="text-[10px] text-zinc-400">
                       ({r.serviceName})
@@ -934,7 +929,7 @@ export default function WorkerDashboardPage() {
                 SahakarGig
               </span>
               <span className="text-[10px] sm:text-[11px] font-medium text-zinc-500 leading-none block truncate max-w-[130px] xs:max-w-[200px] sm:max-w-none mt-1">
-                Artisan Partner Dashboard
+                Worker Dashboard
               </span>
             </div>
           </div>
@@ -943,7 +938,7 @@ export default function WorkerDashboardPage() {
             <div className="hidden md:block text-right">
               <div className="text-xs font-bold text-zinc-900 dark:text-zinc-50">{currentUser.name}</div>
               <div className="text-[10px] text-zinc-500 font-semibold">
-                {workerProfile?.trade || 'Artisan Partner'}
+                {workerProfile?.trade || 'Worker'}
               </div>
             </div>
             <button
@@ -984,7 +979,7 @@ export default function WorkerDashboardPage() {
                     </span>
                   </h3>
                   <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 max-w-xl leading-relaxed">
-                    Your accumulated PACS cash commission dues have reached <strong>{formatCurrency(outstandingDues)}</strong> (threshold: ₹300). Your profile is currently hidden from resident search and job acceptance is paused.
+                    Your accumulated PACS cash commission dues have reached <strong>{formatCurrency(outstandingDues)}</strong> (threshold: ₹300). Your profile is currently hidden from customer search and job acceptance is paused.
                   </p>
                 </div>
               </div>
@@ -1014,8 +1009,8 @@ export default function WorkerDashboardPage() {
                 <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-sm flex items-center gap-2">
                   <span>
                     {workerProfile.kycStatus === 'REJECTED'
-                      ? 'Artisan KYC Verification Rejected'
-                      : 'Artisan KYC Verification Under Review'}
+                      ? 'Worker KYC Verification Rejected'
+                      : 'Worker KYC Verification Under Review'}
                   </span>
                   <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                     {workerProfile.kycStatus}
@@ -1024,7 +1019,7 @@ export default function WorkerDashboardPage() {
                 <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 max-w-xl leading-relaxed">
                   {workerProfile.kycStatus === 'REJECTED'
                     ? 'Your trade verification was rejected by the Primary Cooperative Services Society board. Please contact your society desk.'
-                    : 'Your registration documents have been submitted to the PACS Administration Board. Once verified by the committee, your profile will be activated for resident discovery and you will start receiving job requests.'}
+                    : 'Your registration documents have been submitted to the PACS Administration Board. Once verified by the committee, your profile will be activated for customer discovery and you will start receiving job requests.'}
                 </p>
               </div>
             </div>
@@ -1217,7 +1212,7 @@ export default function WorkerDashboardPage() {
                   </div>
                 )}
 
-                {/* Resident Behavior Trust Score (Worker-Only Intel) */}
+                {/* Customer Behavior Trust Score (Worker-Only Intel) */}
                 {(() => {
                   const custRating = dataService.getCustomerBehaviorRating(bk.customerId);
                   return (
@@ -1225,12 +1220,12 @@ export default function WorkerDashboardPage() {
                       <div className="flex items-center gap-1.5">
                         <Shield className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
                         <div>
-                          <span className="text-zinc-500 font-medium">Resident Behavior Score:</span>{' '}
+                          <span className="text-zinc-500 font-medium">Customer Behavior Score:</span>{' '}
                           <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
                             {custRating.totalReviews > 0 ? `${custRating.averageRating.toFixed(1)} / 5.0` : '5.0 / 5.0 (New)'}
                           </span>
                           <span className="text-[10px] text-zinc-400 ml-1">
-                            ({custRating.totalReviews} worker {custRating.totalReviews === 1 ? 'review' : 'reviews'} · Artisan Intel)
+                            ({custRating.totalReviews} worker {custRating.totalReviews === 1 ? 'review' : 'reviews'} · Worker Intel)
                           </span>
                         </div>
                       </div>
@@ -1240,7 +1235,7 @@ export default function WorkerDashboardPage() {
                         onClick={() => setSelectedCustomerForIntel({ customerId: bk.customerId, customerName: bk.customerName })}
                         className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-50 underline flex items-center gap-0.5 transition-colors"
                       >
-                        Artisan Intel ↗
+                        Worker Intel ↗
                       </button>
                     </div>
                   );
@@ -1253,7 +1248,7 @@ export default function WorkerDashboardPage() {
                     className="btn-primary text-xs py-2 px-5 font-bold shadow-sm"
                   >
                     {actionLoadingId === bk.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                    Accept Job
+                    <span>Accept Job</span>
                   </button>
                 </div>
               </div>
@@ -1261,50 +1256,90 @@ export default function WorkerDashboardPage() {
           )}
         </section>
 
-        {/* -- 2. Active Tasks In Progress -- */}
+        {/* -- 2. Active In-Progress Jobs -- */}
         <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">Active Tasks In Progress</h3>
-            <span className="text-xs text-zinc-400">({inProgressTasks.length})</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-zinc-950" />
+              <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">Active In-Progress Jobs</h3>
+              <span className="text-xs text-zinc-400">({inProgressTasks.length})</span>
+            </div>
           </div>
 
           {inProgressTasks.length === 0 ? (
-            <div className="card p-8 text-center space-y-2">
-              <CheckCircle className="w-8 h-8 text-zinc-300 dark:text-zinc-600 mx-auto" />
-              <div className="font-bold text-zinc-700 dark:text-zinc-300">No active tasks in progress</div>
-              <p className="text-xs text-zinc-400">Accept an incoming request to start working.</p>
+            <div className="card p-8 text-center space-y-2 text-xs text-zinc-400">
+              <Clock className="w-8 h-8 mx-auto text-zinc-300 dark:text-zinc-700" />
+              <p className="font-semibold text-zinc-700 dark:text-zinc-300">No jobs currently in progress</p>
+              <p>Accept an incoming service request above to start work.</p>
             </div>
           ) : (
-            inProgressTasks.map((bk) => (
-              <div key={bk.id} className="card p-5 space-y-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="font-bold text-zinc-900 dark:text-zinc-50 text-base">{bk.serviceName}</div>
-                    <div className="text-xs text-zinc-500 mt-1 flex items-center gap-1.5">
-                      <CalendarDays className="w-3.5 h-3.5" /> Scheduled: {formatDateTime(bk.scheduledDate)}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {inProgressTasks.map((bk) => (
+                <div key={bk.id} className="card p-5 space-y-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-200 dark:border-zinc-700/60">
+                        In Progress
+                      </span>
+                      <h4 className="font-bold text-zinc-900 dark:text-zinc-50 text-sm mt-1">{bk.serviceName}</h4>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-base font-black text-zinc-900 dark:text-zinc-50 tabular-nums">
+                        {formatCurrency(bk.basePrice)}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 block font-semibold">Diagnostic Base</span>
                     </div>
                   </div>
-                  <span className="badge bg-zinc-100 text-zinc-700 border-zinc-200">In Progress</span>
-                </div>
 
-                <CustomerContactCard
-                  booking={bk}
-                  workerName={currentUser.name}
-                  onViewIntel={() => setSelectedCustomerForIntel({ customerId: bk.customerId, customerName: bk.customerName })}
-                />
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-500 font-medium">Customer:</span>
+                      <span className="font-bold text-zinc-900 dark:text-zinc-50">{bk.customerName}</span>
+                    </div>
+                    <div className="flex items-center justify-between font-mono">
+                      <span className="text-zinc-500 font-sans font-medium">Contact:</span>
+                      <a href={`tel:${bk.customerPhone}`} className="text-zinc-800 dark:text-zinc-200 font-bold hover:underline">
+                        {bk.customerPhone}
+                      </a>
+                    </div>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-zinc-500 font-medium">Address:</span>
+                      <span className="font-semibold text-zinc-800 dark:text-zinc-200 text-right">{bk.address}</span>
+                    </div>
+                  </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
-                  <button
-                    onClick={() => handleGenerateInvoice(bk)}
-                    className="btn-primary text-xs py-2 px-5 font-bold shadow-md bg-zinc-800 hover:bg-zinc-700 text-white flex items-center gap-1.5"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Complete Job & Generate Invoice
-                  </button>
+                  {/* Worker-Only Customer Review Action Bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
+                    <div className="text-xs text-zinc-500">
+                      {bk.workerCustomerBehaviorRating !== undefined ? (
+                        <span className="inline-flex items-center gap-1.5 font-semibold text-zinc-800 dark:text-zinc-200">
+                          <Shield className="w-3.5 h-3.5 text-zinc-500" />
+                          Customer Behavior: <strong>{bk.workerCustomerBehaviorRating}/5</strong>
+                          <span className="text-[10px] text-zinc-400 font-normal">(Private Worker Intel)</span>
+                        </span>
+                      ) : (
+                        <span className="text-zinc-400 text-[11px]">
+                          Help fellow workers: Rate customer behavior and cooperation.
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setReviewingCustomerBooking(bk)}
+                      className={`text-xs py-1.5 px-3 font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                        bk.workerCustomerBehaviorRating !== undefined
+                          ? 'btn-secondary text-zinc-700 dark:text-zinc-300'
+                          : 'btn-primary'
+                      }`}
+                    >
+                      <Star className="w-3.5 h-3.5" />
+                      <span>{bk.workerCustomerBehaviorRating !== undefined ? 'Edit Behavior Rating' : 'Rate Customer Behavior'}</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </section>
 
@@ -1452,11 +1487,11 @@ export default function WorkerDashboardPage() {
           )}
         </section>
 
-        {/* -- 5. Resident Reviews & Feedback -- */}
+        {/* -- 5. Customer Reviews & Feedback -- */}
         <section className="space-y-3">
           <div className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
-            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">Resident Reviews & Feedback</h3>
+            <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">Customer Reviews & Feedback</h3>
             <span className="text-xs text-zinc-400">
               ({dataService.getWorkerReviews(currentUser?.id || '').length})
             </span>
@@ -1479,7 +1514,7 @@ export default function WorkerDashboardPage() {
                   <div key={r.id} className="card p-4 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-zinc-900 dark:text-zinc-50 text-xs">
-                        {r.customerName || 'Verified Resident'}
+                        {r.customerName || 'Verified Customer'}
                       </span>
                       <span className="text-[10px] text-zinc-400">
                         {r.reviewedAt ? formatDate(r.reviewedAt) : 'Recent'}
@@ -1561,7 +1596,7 @@ export default function WorkerDashboardPage() {
       {/* Footer */}
       <footer className="bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800/60 py-4 mt-8">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-400 text-center sm:text-left">
-          <div>SahakarGig Artisan Network · Primary Cooperative Services Society System</div>
+          <div>SahakarGig Worker Network · Primary Cooperative Services Society System</div>
           <div className="flex items-center justify-center gap-1 font-mono text-[11px]">
             <Phone className="w-3 h-3 text-zinc-500" />
             <span>Helpline: <strong className="text-zinc-300">+91 1800-425-2667</strong> (Toll Free)</span>
