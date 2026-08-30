@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -52,35 +52,35 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-100 dark:bg-slate-950 flex flex-col items-center justify-center p-4 relative">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4 relative">
       {/* Top Right Theme Toggle */}
       <div className="absolute top-4 right-4 z-20">
         <ThemeToggle />
       </div>
       {/* Brand Header */}
       <div className="flex items-center gap-2.5 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-zinc-950 flex items-center justify-center text-white shadow-md shadow-blue-600/20">
+        <div className="w-10 h-10 rounded-xl bg-zinc-950 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-950 shadow-sm shrink-0">
           <Leaf className="w-5 h-5" />
         </div>
-        <div>
-          <span className="font-black text-zinc-900 dark:text-zinc-50 text-2xl leading-none block">
+        <div className="flex flex-col justify-center">
+          <span className="font-black text-zinc-900 dark:text-zinc-50 text-2xl tracking-tight leading-none block whitespace-nowrap">
             SahakarGig
           </span>
-          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mt-1 block">
             PACS Administration Portal
           </span>
         </div>
       </div>
 
       {/* Login Card */}
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl p-8 shadow-sm">
+      <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700/60 rounded-2xl p-6 sm:p-8 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950 text-zinc-700 dark:text-zinc-300 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center justify-center shrink-0">
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="font-bold text-zinc-900 dark:text-zinc-50 text-lg">Administrative Console Login</h1>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">District Cooperative Federation Security Desk</p>
+            <h1 className="font-bold text-zinc-900 dark:text-zinc-50 text-lg leading-tight">Administrative Console Login</h1>
+            <p className="text-xs text-zinc-500">District Cooperative Federation Security Desk</p>
           </div>
         </div>
 

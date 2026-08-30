@@ -910,34 +910,34 @@ export default function WorkerDashboardPage() {
     <div className="min-h-screen flex flex-col bg-zinc-50">
       {/* --- Top Header -------------------------------------------------------- */}
       <header className="nav-sticky">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-zinc-950 flex items-center justify-center text-white shadow-md shadow-zinc-900/20">
-              <Wrench className="w-5 h-5" />
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 shrink-0 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-950 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-950 shadow-sm shrink-0">
+              <Wrench className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <span className="font-black text-zinc-900 dark:text-zinc-50 text-xl tracking-tight leading-none block">
+            <div className="flex flex-col justify-center min-w-0">
+              <span className="font-black text-zinc-900 dark:text-zinc-50 text-lg sm:text-xl tracking-tight leading-none block whitespace-nowrap">
                 SahakarGig
               </span>
-              <span className="text-[11px] font-medium text-zinc-500 leading-none">
+              <span className="text-[10px] sm:text-[11px] font-medium text-zinc-500 leading-none block truncate max-w-[130px] xs:max-w-[200px] sm:max-w-none mt-1">
                 Artisan Partner Dashboard
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:block text-right">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="hidden md:block text-right">
               <div className="text-xs font-bold text-zinc-900 dark:text-zinc-50">{currentUser.name}</div>
-              <div className="text-[10px] text-zinc-700 dark:text-zinc-300 font-semibold">
+              <div className="text-[10px] text-zinc-500 font-semibold">
                 {workerProfile?.trade || 'Artisan Partner'}
               </div>
             </div>
             <button
               onClick={handleSignOut}
-              className="btn-secondary py-1.5 px-3 text-xs font-bold"
+              className="btn-secondary py-1.5 px-2.5 sm:px-3 text-xs font-semibold whitespace-nowrap flex items-center gap-1"
               title="Sign Out"
             >
-              <LogOut className="w-3.5 h-3.5" /> Sign Out
+              <LogOut className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Sign Out</span>
             </button>
             <ThemeToggle />
           </div>

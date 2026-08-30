@@ -1051,25 +1051,25 @@ export default function MarketplacePage() {
 
       {/* ─── Top Header ──────────────────────────────────────────────────────── */}
       <header className="nav-sticky dark:border-zinc-800/60 border-zinc-200">
-        <div className="max-w-6xl mx-auto px-4 h-15 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-zinc-950 dark:bg-zinc-100 flex items-center justify-center shadow-sm">
-              <Leaf className="w-5 h-5 text-white dark:text-zinc-950" />
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 shrink-0 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-950 dark:bg-zinc-100 flex items-center justify-center shadow-sm shrink-0">
+              <Leaf className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-white dark:text-zinc-950" />
             </div>
-            <div>
-              <span className="font-black text-zinc-900 dark:text-zinc-50 text-xl tracking-tight leading-none block">
+            <div className="flex flex-col justify-center min-w-0">
+              <span className="font-black text-zinc-900 dark:text-zinc-50 text-lg sm:text-xl tracking-tight leading-none block whitespace-nowrap">
                 SahakarGig
               </span>
-              <span className="text-[11px] font-medium text-zinc-500 leading-none">
+              <span className="text-[10px] sm:text-[11px] font-medium text-zinc-500 leading-none block truncate max-w-[130px] xs:max-w-[200px] sm:max-w-none mt-1">
                 Direct Cooperative Artisan Discovery
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {currentUser ? (
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:block text-right">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="hidden md:block text-right">
                   <div className="text-xs font-bold text-zinc-900 dark:text-zinc-50">{currentUser.name}</div>
                   <div className="text-[10px] text-zinc-500 font-semibold">
                     {currentUser.role === 'WORKER' ? 'Artisan Partner' : 'Resident Customer'}
@@ -1078,31 +1078,31 @@ export default function MarketplacePage() {
                 {currentUser.role === 'WORKER' && (
                   <button
                     onClick={() => router.push('/worker')}
-                    className="btn-primary py-1.5 px-3 text-xs font-semibold"
+                    className="btn-primary py-1.5 px-2.5 sm:px-3 text-xs font-semibold whitespace-nowrap"
                   >
                     Artisan Desk
                   </button>
                 )}
                 <button
                   onClick={handleSignOut}
-                  className="btn-secondary py-1.5 px-3 text-xs font-semibold"
+                  className="btn-secondary py-1.5 px-2.5 sm:px-3 text-xs font-semibold whitespace-nowrap flex items-center gap-1"
                 >
-                  <LogOut className="w-3.5 h-3.5" /> Sign Out
+                  <LogOut className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Sign Out</span>
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   onClick={() => setAuthModal('signin')}
-                  className="btn-secondary text-xs py-2 px-3.5 font-semibold"
+                  className="btn-secondary text-xs py-1.5 px-2.5 sm:py-2 sm:px-3.5 font-semibold whitespace-nowrap flex items-center gap-1"
                 >
-                  <LogIn className="w-3.5 h-3.5" /> Sign In
+                  <LogIn className="w-3.5 h-3.5" /> <span>Sign In</span>
                 </button>
                 <button
                   onClick={() => setAuthModal('signup')}
-                  className="btn-primary text-xs py-2 px-4 font-semibold"
+                  className="btn-primary text-xs py-1.5 px-2.5 sm:py-2 sm:px-4 font-semibold whitespace-nowrap flex items-center gap-1"
                 >
-                  <UserPlus className="w-3.5 h-3.5" /> Get Started
+                  <UserPlus className="w-3.5 h-3.5" /> <span className="hidden xs:inline">Get Started</span><span className="xs:hidden">Join</span>
                 </button>
               </div>
             )}
