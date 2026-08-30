@@ -438,7 +438,7 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
 
             <button type="submit" className="btn-primary w-full py-2.5 font-semibold" disabled={loading}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-              <span>{loading ? 'Creating Account…' : 'Register & Sign In'}</span>
+              <span>{loading ? 'Registering...' : 'Register'}</span>
             </button>
           </form>
 
