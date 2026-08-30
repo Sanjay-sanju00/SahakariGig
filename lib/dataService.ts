@@ -39,6 +39,8 @@ export interface User {
   trade?: string;
   localSociety?: string;
   kycDocName?: string;
+  kycDocData?: string;
+  kycDocType?: string;
   isVerified: boolean;
   createdAt: string;
 }
@@ -56,6 +58,8 @@ export interface WorkerProfile {
   isAvailable: boolean;
   kycStatus: KycStatus;
   kycDocName?: string;
+  kycDocData?: string;
+  kycDocType?: string;
   subscriptionPlan?: 'MONTHLY' | 'YEARLY';
   passValidUntil: string;
   totalEarnings: number;
@@ -698,7 +702,7 @@ export const dataService = {
 
   async register(
     user: User,
-    workerData?: { trade: string; skills: string[]; bio: string; kycDocName?: string }
+    workerData?: Partial<WorkerProfile>
   ): Promise<User> {
     try {
       await Promise.race([syncFromCloud(), new Promise((resolve) => setTimeout(resolve, 1200))]);
@@ -728,6 +732,8 @@ export const dataService = {
         isAvailable: true,
         kycStatus: 'PENDING',
         kycDocName: workerData?.kycDocName || user.kycDocName || 'identity_document.pdf',
+        kycDocData: workerData?.kycDocData || user.kycDocData,
+        kycDocType: workerData?.kycDocType || user.kycDocType,
         subscriptionPlan: 'MONTHLY',
         passValidUntil: new Date(Date.now() + 30 * 86400000).toISOString(),
         totalEarnings: 0,

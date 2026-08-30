@@ -6,7 +6,7 @@ import {
   Leaf, LogOut, Shield, Users, BadgeCheck, XCircle,
   CheckCircle, IndianRupee, Edit3, Save, X, Eye,
   Loader2, AlertTriangle, TrendingUp, CalendarDays,
-  Coins, Building2, Wrench, RefreshCw, Star, MessageSquare, UserX
+  Coins, Building2, Wrench, RefreshCw, Star, MessageSquare, UserX, FileText
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import dataService, { WorkerProfile, Service, Society, User } from '@/lib/dataService';
@@ -623,6 +623,45 @@ export default function AdminDashboardPage() {
                   </span>
                 </div>
               </div>
+
+              {/* Uploaded Document Display (Image or PDF) */}
+              {selectedWorkerKyc.kycDocData && (
+                <div className="space-y-2 pt-1 border-t border-zinc-200 dark:border-zinc-800/60">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-zinc-500" />
+                      <span>Uploaded Document ({selectedWorkerKyc.kycDocName || 'Document'})</span>
+                    </span>
+                    <a
+                      href={selectedWorkerKyc.kycDocData}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 hover:underline"
+                    >
+                      Open Full Document ↗
+                    </a>
+                  </div>
+
+                  {selectedWorkerKyc.kycDocType?.includes('pdf') || selectedWorkerKyc.kycDocName?.toLowerCase().endsWith('.pdf') ? (
+                    <div className="h-64 rounded-xl border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                      <iframe
+                        src={selectedWorkerKyc.kycDocData}
+                        title="Artisan KYC PDF"
+                        className="w-full h-full"
+                      />
+                    </div>
+                  ) : (
+                    <div className="p-2 bg-zinc-950/5 dark:bg-zinc-950/40 rounded-xl border border-zinc-200 dark:border-zinc-700/60 flex justify-center max-h-64 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={selectedWorkerKyc.kycDocData}
+                        alt="Artisan Identity Document"
+                        className="max-h-60 object-contain rounded-lg shadow-sm"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="flex items-center justify-between text-[11px] pt-1 text-zinc-500">
                 <div className="flex items-center gap-1.5">

@@ -7,7 +7,7 @@ import {
   Shield, CheckCircle, AlertCircle, Loader2,
   LogIn, UserPlus, X, CreditCard, ChevronRight,
   Sparkles, Wrench, Phone, Award, ThumbsUp, DollarSign,
-  LogOut, Check, MessageSquare, MessageCircle, ChevronDown, ChevronUp
+  LogOut, Check, MessageSquare, MessageCircle, ChevronDown, ChevronUp, FileText
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import dataService, { Service, Booking, WorkerProfile, User, Society } from '@/lib/dataService';
@@ -143,6 +143,9 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
   const [address, setAddress] = useState('');
   const [trade, setTrade] = useState('Electrical');
   const [kycDocName, setKycDocName] = useState('');
+  const [kycDocData, setKycDocData] = useState('');
+  const [kycDocType, setKycDocType] = useState('');
+  const [kycDocSize, setKycDocSize] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -157,9 +160,47 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) {
-      setKycDocName(file.name);
+    if (!file) return;
+
+    // Validate allowed file types (PDF, PNG, JPG, JPEG)
+    const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const validExts = ['pdf', 'png', 'jpg', 'jpeg'];
+
+    if (!validTypes.includes(file.type) && (!ext || !validExts.includes(ext))) {
+      setError('Invalid file format. Please upload a PDF, PNG, or JPG document.');
+      setKycDocName('');
+      setKycDocData('');
+      setKycDocType('');
+      setKycDocSize(0);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
     }
+
+    // Validate file size <= 5MB (5 * 1024 * 1024 bytes)
+    const MAX_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      setError(`File size (${(file.size / (1024 * 1024)).toFixed(2)} MB) exceeds the 5MB limit. Please upload a smaller file.`);
+      setKycDocName('');
+      setKycDocData('');
+      setKycDocType('');
+      setKycDocSize(0);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setError('');
+    setKycDocName(file.name);
+    setKycDocSize(file.size);
+    setKycDocType(file.type || (ext === 'pdf' ? 'application/pdf' : 'image/jpeg'));
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setKycDocData(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleSignUp(e: React.FormEvent) {
@@ -172,6 +213,14 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
     if (cleanPhone.length < 10) {
       setError('Please enter a valid 10-digit mobile number.');
       return;
+    }
+
+    // Worker Mandatory KYC Document Check
+    if (role === 'WORKER') {
+      if (!kycDocData || !kycDocName) {
+        setError('Mandatory: Please upload your trade / identity document (PDF, PNG, or JPG under 5MB).');
+        return;
+      }
     }
 
     setError('');
@@ -187,9 +236,11 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
         role,
         address: address.trim() || undefined,
         trade: role === 'WORKER' ? trade : undefined,
-        kycDocName: role === 'WORKER' ? (kycDocName || 'identity_proof.pdf') : undefined,
+        kycDocName: role === 'WORKER' ? kycDocName : undefined,
+        kycDocData: role === 'WORKER' ? kycDocData : undefined,
+        kycDocType: role === 'WORKER' ? kycDocType : undefined,
         localSociety: 'Primary Cooperative Services Society',
-        isVerified: true,
+        isVerified: role === 'CUSTOMER', // Workers require PACS Committee approval
         createdAt: new Date().toISOString(),
       };
 
@@ -321,9 +372,9 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
             </div>
 
             {role === 'WORKER' && (
-              <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-3">
+              <div className="p-3.5 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-3">
                 <div>
-                  <label className="form-label text-xs">Primary Trade</label>
+                  <label className="form-label text-xs">Primary Trade / Skill</label>
                   <select
                     className="form-input text-xs"
                     value={trade}
@@ -336,22 +387,44 @@ function SignUpModal({ onClose, onSuccess, onSwitchToSignIn }: SignUpModalProps)
                 </div>
 
                 <div>
-                  <label className="form-label text-xs">Identity Document (Aadhaar / Voter ID)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="form-label text-xs mb-0">
+                      Mandatory KYC Document <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-zinc-400 font-medium">PDF, PNG, JPG (Max 5MB)</span>
+                  </div>
                   <input
                     type="file"
                     ref={fileInputRef}
                     onChange={handleFileSelect}
                     className="hidden"
-                    accept=".pdf,.jpg,.jpeg,.png"
+                    accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/png,image/jpeg"
                   />
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-2 px-3 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-left flex items-center justify-between transition-colors"
+                    className={`w-full py-2.5 px-3 border rounded-lg text-xs font-semibold text-left flex items-center justify-between transition-colors ${
+                      kycDocData
+                        ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                        : 'border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                    }`}
                   >
-                    <span>{kycDocName || 'Upload ID Document (.pdf, .jpg)'}</span>
-                    <span className="text-zinc-900 dark:text-zinc-100 font-bold">Browse</span>
+                    <div className="flex items-center gap-2 truncate">
+                      <FileText className="w-4 h-4 shrink-0 text-zinc-500" />
+                      <span className="truncate">
+                        {kycDocName ? `${kycDocName} (${(kycDocSize / 1024).toFixed(0)} KB)` : 'Upload Aadhaar / Trade Certificate *'}
+                      </span>
+                    </div>
+                    <span className="text-zinc-900 dark:text-zinc-100 font-bold shrink-0 ml-2">
+                      {kycDocData ? 'Change' : 'Browse'}
+                    </span>
                   </button>
+                  {kycDocData && (
+                    <div className="mt-1 text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
+                      <CheckCircle className="w-3 h-3" />
+                      <span>Document attached and ready for PACS admin review</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
