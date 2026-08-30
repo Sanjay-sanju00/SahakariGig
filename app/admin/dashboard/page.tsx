@@ -6,7 +6,7 @@ import {
   Leaf, LogOut, Shield, Users, BadgeCheck, XCircle,
   CheckCircle, IndianRupee, Edit3, Save, X, Eye,
   Loader2, AlertTriangle, TrendingUp, CalendarDays,
-  Coins, Building2, Wrench, RefreshCw, Star, MessageSquare, UserX, FileText
+  Coins, Building2, Wrench, RefreshCw, Star, MessageSquare, UserX, FileText, Phone
 } from 'lucide-react';
 import ThemeToggle from '@/components/ThemeToggle';
 import dataService, { WorkerProfile, Service, Society, User } from '@/lib/dataService';
@@ -389,18 +389,20 @@ export default function AdminDashboardPage() {
                           {w.trade}
                         </td>
                         <td className="px-4 py-3.5 space-y-1">
-                          <div className="flex items-center gap-1 text-zinc-700 dark:text-zinc-300 text-xs">
+                          <div className="flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300 text-xs">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
                             <span className="text-zinc-500">Quality:</span>
                             <strong className="text-zinc-900 dark:text-zinc-50 tabular-nums">{(w.qualityRating || 5.0).toFixed(1)}/5</strong>
                           </div>
-                          <div className="flex items-center gap-1 text-zinc-700 dark:text-zinc-300 text-xs">
+                          <div className="flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300 text-xs">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
                             <span className="text-zinc-500">Behavior:</span>
                             <strong className="text-zinc-900 dark:text-zinc-50 tabular-nums">{(w.behaviorRating || 5.0).toFixed(1)}/5</strong>
                           </div>
-                          <div className="flex items-center gap-1 text-zinc-700 dark:text-zinc-300 text-xs">
+                          <div className="flex items-center gap-1.5 text-zinc-700 dark:text-zinc-300 text-xs">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
                             <span className="text-zinc-500">Pricing:</span>
                             <strong className="text-zinc-900 dark:text-zinc-50 tabular-nums">{(w.pricingRating || 5.0).toFixed(1)}/5</strong>
-                            <span className="text-[10px] text-zinc-400">({w.fairPricingPercentage || 100}%)</span>
                           </div>
                           <button
                             type="button"
@@ -738,20 +740,23 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-3 gap-2 p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-center text-xs">
               <div>
                 <span className="text-[10px] text-zinc-500 block font-medium">Work Quality</span>
-                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
-                  {(selectedWorkerForReviews.qualityRating || 5.0).toFixed(1)} / 5.0
+                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums flex items-center justify-center gap-1 mt-0.5">
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <span>{(selectedWorkerForReviews.qualityRating || 5.0).toFixed(1)} / 5.0</span>
                 </span>
               </div>
               <div>
                 <span className="text-[10px] text-zinc-500 block font-medium">Behavior & Respect</span>
-                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
-                  {(selectedWorkerForReviews.behaviorRating || 5.0).toFixed(1)} / 5.0
+                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums flex items-center justify-center gap-1 mt-0.5">
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <span>{(selectedWorkerForReviews.behaviorRating || 5.0).toFixed(1)} / 5.0</span>
                 </span>
               </div>
               <div>
                 <span className="text-[10px] text-zinc-500 block font-medium">Fair Pricing</span>
-                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
-                  {(selectedWorkerForReviews.pricingRating || 5.0).toFixed(1)} / 5.0
+                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums flex items-center justify-center gap-1 mt-0.5">
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                  <span>{(selectedWorkerForReviews.pricingRating || 5.0).toFixed(1)} / 5.0</span>
                 </span>
               </div>
             </div>
@@ -819,8 +824,12 @@ export default function AdminDashboardPage() {
 
       {/* Footer */}
       <footer className="bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800/60 py-4 mt-8">
-        <div className="max-w-7xl mx-auto px-4 text-center text-xs text-zinc-400">
-          PACS Governance Console · Primary Cooperative Services Society System
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-400 text-center sm:text-left">
+          <div>PACS Governance Console · Primary Cooperative Services Society System</div>
+          <div className="flex items-center justify-center gap-1 font-mono text-[11px]">
+            <Phone className="w-3 h-3 text-zinc-500" />
+            <span>Helpline: <strong className="text-zinc-300">+91 1800-425-2667</strong> (Toll Free)</span>
+          </div>
         </div>
       </footer>
     </div>

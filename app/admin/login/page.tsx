@@ -155,8 +155,9 @@ export default function AdminLoginPage() {
         </div>
       </div>
 
-      <div className="mt-8 text-center text-xs text-zinc-400 dark:text-zinc-500">
-        PACS Society Administration System · High Security Isolated Environment
+      <div className="mt-8 text-center text-xs text-zinc-400 dark:text-zinc-500 space-y-1">
+        <div>PACS Society Administration System · High Security Isolated Environment</div>
+        <div className="text-[11px] font-mono text-zinc-500">Helpline: +91 1800-425-2667 (Toll Free)</div>
       </div>
     </div>
   );

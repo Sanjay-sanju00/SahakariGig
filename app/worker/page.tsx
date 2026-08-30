@@ -1143,7 +1143,7 @@ export default function WorkerDashboardPage() {
               <span>{workerProfile?.pricingRating ? workerProfile.pricingRating.toFixed(1) : '5.0'}</span>
               <span className="text-xs text-zinc-400 font-normal">/ 5.0</span>
             </div>
-            <div className="text-[10px] text-zinc-400">{workerProfile?.fairPricingPercentage || 100}% Fair Pricing Score</div>
+            <div className="text-[10px] text-zinc-400">Audited Fair Pricing Score</div>
           </div>
         </div>
 
@@ -1560,8 +1560,12 @@ export default function WorkerDashboardPage() {
 
       {/* Footer */}
       <footer className="bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800/60 py-4 mt-8">
-        <div className="max-w-6xl mx-auto px-4 text-center text-xs text-zinc-400">
-          SahakarGig Artisan Network · Primary Cooperative Services Society System
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-zinc-400 text-center sm:text-left">
+          <div>SahakarGig Artisan Network · Primary Cooperative Services Society System</div>
+          <div className="flex items-center justify-center gap-1 font-mono text-[11px]">
+            <Phone className="w-3 h-3 text-zinc-500" />
+            <span>Helpline: <strong className="text-zinc-300">+91 1800-425-2667</strong> (Toll Free)</span>
+          </div>
         </div>
       </footer>
     </div>

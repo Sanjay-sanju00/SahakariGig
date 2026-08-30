@@ -531,7 +531,7 @@ function WorkerBookingModal({ worker, tradeBasePrice, user, onClose, onBookingSu
               {worker.name.charAt(0)}
             </div>
             <div>
-              <h3 className="font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Book {worker.name}</h3>
+              <h3 className="font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">{worker.name}</h3>
               <p className="text-xs text-zinc-500">
                 {worker.trade} · Standard Base Diagnostic Rate: {formatCurrency(tradeBasePrice)}
               </p>
@@ -643,7 +643,7 @@ function WorkerBookingModal({ worker, tradeBasePrice, user, onClose, onBookingSu
               className="btn-primary text-xs py-2.5 px-5 font-semibold flex items-center gap-1.5"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarDays className="w-4 h-4" />}
-              <span>Book {worker.name} (Pay After Work Done)</span>
+              <span>Book</span>
             </button>
           </div>
         </form>
@@ -1136,19 +1136,6 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950">
-      {/* ─── Top Universal PACS Authority Helpline Banner ─── */}
-      <div className="bg-zinc-950 dark:bg-black text-zinc-400 text-xs font-medium py-1.5 px-4 border-b border-zinc-800/60">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-center sm:text-left">
-          <div className="flex items-center gap-1.5 text-zinc-300">
-            <Shield className="w-3.5 h-3.5 text-zinc-500" />
-            <span>Primary Cooperative Services Society Desk</span>
-          </div>
-          <div className="flex items-center gap-1 text-zinc-500 font-mono text-[11px]">
-            <Phone className="w-3 h-3 text-zinc-600" />
-            <span>Helpline: <strong className="text-zinc-300">+91 1800-425-2667</strong> (Toll Free)</span>
-          </div>
-        </div>
-      </div>
 
       {/* ─── Top Header ──────────────────────────────────────────────────────── */}
       <header className="nav-sticky dark:border-zinc-800/60 border-zinc-200">
@@ -1279,9 +1266,13 @@ export default function MarketplacePage() {
                         <span className="text-[10px] text-zinc-400 block font-semibold uppercase tracking-wider">Cluster Base Rate</span>
                         <span className="text-base font-black text-zinc-900 dark:text-zinc-50 tabular-nums">{formatCurrency(svc.basePrice || svc.price)}</span>
                       </div>
-                      <span className="text-xs font-semibold text-zinc-500 flex items-center gap-1">
-                        Book Now <ChevronRight className="w-3.5 h-3.5" />
-                      </span>
+                      <button
+                        type="button"
+                        className="btn-primary text-xs py-1.5 px-3 font-semibold flex items-center gap-1 shadow-sm"
+                      >
+                        <span>Book Now</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1354,11 +1345,12 @@ export default function MarketplacePage() {
                 {/* Search Bar and Trade Category Filters */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
-                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                    <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
                     <input
                       type="text"
-                      className="form-input pl-10"
-                      placeholder="Search electricians, plumbers, carpenters, technicians by name or skill…"
+                      className="form-input !pl-10"
+                      style={{ paddingLeft: '2.5rem' }}
+                      placeholder="Search..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -1458,22 +1450,29 @@ export default function MarketplacePage() {
                             <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-2 text-xs">
                               <div className="flex items-center justify-between">
                                 <span className="text-zinc-500 flex items-center gap-1">
-                                   Quality Score:
+                                  Quality Score:
                                 </span>
-                                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">{qualityScore} / 5.0</span>
+                                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums flex items-center gap-1">
+                                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                  <span>{qualityScore} / 5.0</span>
+                                </span>
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-zinc-500 flex items-center gap-1">
-                                   Behavior & Punctuality:
+                                  Behavior & Punctuality:
                                 </span>
-                                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">{behaviorScore} / 5.0</span>
+                                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums flex items-center gap-1">
+                                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                  <span>{behaviorScore} / 5.0</span>
+                                </span>
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="text-zinc-500 flex items-center gap-1">
-                                   Pricing Fairness:
+                                  Pricing Fairness:
                                 </span>
-                                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums">
-                                  {(w.pricingRating || 4.9).toFixed(1)} / 5.0 ({fairPercentage}%)
+                                <span className="font-bold text-zinc-900 dark:text-zinc-50 tabular-nums flex items-center gap-1">
+                                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                  <span>{(w.pricingRating || 5.0).toFixed(1)} / 5.0</span>
                                 </span>
                               </div>
                             </div>
@@ -1877,15 +1876,19 @@ export default function MarketplacePage() {
       )}
 
       {/* ─── Footer ─────────────────────────────────────────────────────────── */}
-      <footer className="bg-white border-t border-slate-200 py-6 mt-12">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+      <footer className="bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800/60 py-6 mt-12">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500">
           <div>
             © 2026 <strong>SahakarGig</strong> — Primary Cooperative Services Platform.
           </div>
+          <div className="flex items-center gap-1.5 font-mono text-[11px] text-zinc-600 dark:text-zinc-400">
+            <Phone className="w-3 h-3 text-zinc-500" />
+            <span>Helpline: <strong className="text-zinc-800 dark:text-zinc-200">+91 1800-425-2667</strong> (Toll Free)</span>
+          </div>
           {!currentUser && (
             <div>
-              <a href="/admin/login" className="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1">
-                <Shield className="w-3 h-3" /> PACS Administration Console
+              <a href="/admin/login" className="text-zinc-600 dark:text-zinc-400 font-semibold hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1">
+                <Shield className="w-3 h-3" /> PACS Admin Console
               </a>
             </div>
           )}
