@@ -1308,34 +1308,46 @@ export default function WorkerDashboardPage() {
                     </div>
                   </div>
 
-                  {/* Worker-Only Customer Review Action Bar */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
-                    <div className="text-xs text-zinc-500">
-                      {bk.workerCustomerBehaviorRating !== undefined ? (
-                        <span className="inline-flex items-center gap-1.5 font-semibold text-zinc-800 dark:text-zinc-200">
-                          <Shield className="w-3.5 h-3.5 text-zinc-500" />
-                          Customer Behavior: <strong>{bk.workerCustomerBehaviorRating}/5</strong>
-                          <span className="text-[10px] text-zinc-400 font-normal">(Private Worker Intel)</span>
-                        </span>
-                      ) : (
-                        <span className="text-zinc-400 text-[11px]">
-                          Help fellow workers: Rate customer behavior and cooperation.
-                        </span>
-                      )}
-                    </div>
-
+                  {/* Complete Job & Invoicing CTA */}
+                  <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/60 space-y-3">
                     <button
                       type="button"
-                      onClick={() => setReviewingCustomerBooking(bk)}
-                      className={`text-xs py-1.5 px-3 font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
-                        bk.workerCustomerBehaviorRating !== undefined
-                          ? 'btn-secondary text-zinc-700 dark:text-zinc-300'
-                          : 'btn-primary'
-                      }`}
+                      onClick={() => handleGenerateInvoice(bk)}
+                      className="btn-primary w-full py-2.5 px-4 font-bold text-xs flex items-center justify-center gap-2 shadow-sm"
                     >
-                      <Star className="w-3.5 h-3.5" />
-                      <span>{bk.workerCustomerBehaviorRating !== undefined ? 'Edit Behavior Rating' : 'Rate Customer Behavior'}</span>
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Complete Job & Generate Invoice</span>
                     </button>
+
+                    {/* Worker-Only Customer Review Action Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs text-zinc-500">
+                      <div>
+                        {bk.workerCustomerBehaviorRating !== undefined ? (
+                          <span className="inline-flex items-center gap-1.5 font-semibold text-zinc-800 dark:text-zinc-200 text-xs">
+                            <Shield className="w-3.5 h-3.5 text-zinc-500" />
+                            Customer Behavior: <strong>{bk.workerCustomerBehaviorRating}/5</strong>
+                            <span className="text-[10px] text-zinc-400 font-normal">(Private Worker Intel)</span>
+                          </span>
+                        ) : (
+                          <span className="text-zinc-400 text-[11px]">
+                            Help fellow workers: Rate customer behavior and cooperation.
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setReviewingCustomerBooking(bk)}
+                        className={`text-xs py-1.5 px-3 font-semibold rounded-lg transition-colors flex items-center gap-1.5 ${
+                          bk.workerCustomerBehaviorRating !== undefined
+                            ? 'btn-secondary text-zinc-700 dark:text-zinc-300'
+                            : 'btn-secondary border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200'
+                        }`}
+                      >
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span>{bk.workerCustomerBehaviorRating !== undefined ? 'Edit Behavior Rating' : 'Rate Customer Behavior'}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
