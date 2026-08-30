@@ -404,6 +404,8 @@ function WorkerBookingModal({ worker, tradeBasePrice, user, onClose, onBookingSu
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const fee = Math.round(tradeBasePrice * 0.05);
+
   async function handleBook(e: React.FormEvent) {
     e.preventDefault();
     if (!address.trim() || !phone.trim()) {
@@ -419,7 +421,6 @@ function WorkerBookingModal({ worker, tradeBasePrice, user, onClose, onBookingSu
     setError('');
     setLoading(true);
 
-    const fee = Math.round(tradeBasePrice * 0.05);
     const newBooking: Booking = {
       id: `bk-${Date.now()}`,
       customerId: user.id,
@@ -528,6 +529,27 @@ function WorkerBookingModal({ worker, tradeBasePrice, user, onClose, onBookingSu
             />
           </div>
 
+          {/* Transparent 5% Platform Fee & Initial Estimate Breakdown */}
+          <div className="p-3.5 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs space-y-1.5">
+            <div className="font-semibold text-zinc-900 dark:text-zinc-50 flex items-center justify-between">
+              <span>Standard Base Diagnostic Rate:</span>
+              <span className="tabular-nums font-bold">{formatCurrency(tradeBasePrice)}</span>
+            </div>
+            <div className="flex items-center justify-between text-zinc-600 dark:text-zinc-400">
+              <span className="flex items-center gap-1">
+                <span>PACS Community Platform Fee (5%):</span>
+              </span>
+              <span className="tabular-nums font-semibold">+{formatCurrency(fee)}</span>
+            </div>
+            <div className="pt-1.5 border-t border-zinc-200 dark:border-zinc-700/60 flex items-center justify-between font-bold text-zinc-900 dark:text-zinc-50">
+              <span>Starting Diagnostic Total:</span>
+              <span className="tabular-nums text-sm font-black">{formatCurrency(tradeBasePrice + fee)}</span>
+            </div>
+            <div className="text-[10px] text-zinc-500 pt-0.5 leading-relaxed">
+              * 100% of labor & diagnostic fees go directly to {worker.name}. The 5% PACS fee funds the Primary Cooperative Society welfare and emergency pool.
+            </div>
+          </div>
+
           {error && (
             <div className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-semibold">
               {error}
@@ -614,8 +636,11 @@ function PostServicePaymentModal({ booking, onClose, onConfirm }: PostServicePay
           </div>
 
           <div className="flex justify-between text-zinc-500 dark:text-zinc-400">
-            <span>PACS Platform Fee (5%):</span>
-            <span className="tabular-nums">+{formatCurrency(platformFee)}</span>
+            <div>
+              <span>PACS Community Platform Fee (5%):</span>
+              <span className="text-[10px] text-zinc-400 block">Supports Cooperative Society & Artisan Welfare Pool</span>
+            </div>
+            <span className="tabular-nums font-semibold">+{formatCurrency(platformFee)}</span>
           </div>
 
           <div className="h-px bg-zinc-200 dark:bg-zinc-700/60 my-1" />
@@ -631,7 +656,7 @@ function PostServicePaymentModal({ booking, onClose, onConfirm }: PostServicePay
             <Shield className="w-3.5 h-3.5 text-zinc-500" /> Direct Payout Guarantee
           </div>
           <p className="text-[11px] leading-relaxed">
-            {formatCurrency(subtotal)} will be credited directly to {booking.workerName || 'the artisan'}&apos;s wallet immediately.
+            {formatCurrency(subtotal)} (100% of labor/parts) is transferred directly to {booking.workerName || 'the artisan'}. {formatCurrency(platformFee)} (5%) goes to the Primary Cooperative Society Welfare Reserve.
           </p>
         </div>
 
@@ -1553,6 +1578,26 @@ export default function MarketplacePage() {
                             </p>
                           </div>
                         )}
+
+                        {/* Bill Breakdown with 5% PACS Platform Fee */}
+                        <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs space-y-1">
+                          <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
+                            <span>Artisan Labor & Diagnostic Subtotal:</span>
+                            <span className="font-semibold text-zinc-900 dark:text-zinc-50 tabular-nums">
+                              {formatCurrency(bk.subtotalAmount || bk.basePrice || 150)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-zinc-500 dark:text-zinc-400 text-[11px]">
+                            <span>PACS Community Platform Fee (5%):</span>
+                            <span className="tabular-nums font-medium">
+                              +{formatCurrency(bk.platformFee || Math.round((bk.subtotalAmount || bk.basePrice || 150) * 0.05))}
+                            </span>
+                          </div>
+                          <div className="flex justify-between font-bold text-zinc-900 dark:text-zinc-50 pt-1 border-t border-zinc-200 dark:border-zinc-700/60">
+                            <span>Total Payable:</span>
+                            <span className="tabular-nums font-black">{formatCurrency(bk.totalAmount)}</span>
+                          </div>
+                        </div>
 
                         {/* In-Progress Notification */}
                         {bk.status === 'IN_PROGRESS' && (
