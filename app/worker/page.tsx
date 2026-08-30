@@ -511,7 +511,7 @@ function WorkerCustomerReviewModal({ booking, onClose, onSubmitReview }: WorkerC
         <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center font-black text-sm shadow-sm">
-              <User className="w-4 h-4" />
+              <Star className="w-4 h-4" />
             </div>
             <div>
               <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base tracking-tight">
@@ -1442,7 +1442,7 @@ export default function WorkerDashboardPage() {
                           : 'btn-primary'
                       }`}
                     >
-                      <User className="w-3.5 h-3.5" />
+                      <Star className="w-3.5 h-3.5" />
                       <span>{bk.workerCustomerBehaviorRating !== undefined ? 'Edit Behavior Rating' : 'Rate Resident Behavior'}</span>
                     </button>
                   </div>
