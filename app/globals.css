@@ -701,3 +701,27 @@ html.dark,
 .animate-spin    { animation: spin 1s linear infinite; }
 .animate-pulse   { animation: pulse 2s ease-in-out infinite; }
 .animate-fadein  { animation: fade-in 0.2s ease; }
+
+/* ─── Mobile Phone Optimizations ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  .kpi-card {
+    padding: 12px 14px !important;
+    border-radius: var(--radius-md) !important;
+  }
+  .modal-backdrop {
+    padding: 8px !important;
+  }
+  .modal-box {
+    max-height: 94vh !important;
+    border-radius: var(--radius-lg) !important;
+  }
+  .modal-box-lg {
+    max-width: 100% !important;
+  }
+  .card {
+    border-radius: var(--radius-lg);
+  }
+  table {
+    min-width: 520px;
+  }
+}

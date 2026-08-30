@@ -204,68 +204,64 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Real-time Dynamic KPI Metric Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {/* Total Platform Volume */}
-          <div className="kpi-card border-l-4 border-l-blue-600">
-            <div className="w-9 h-9 rounded-xl bg-zinc-50 text-zinc-700 flex items-center justify-center mb-3">
-              <TrendingUp className="w-5 h-5" />
+          <div className="kpi-card p-3 sm:p-5 border-l-4 border-l-blue-600">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-zinc-50 text-zinc-700 flex items-center justify-center mb-2 sm:mb-3">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div className="text-xs text-zinc-500 font-semibold mb-0.5">Total Service Volume</div>
-            <div className="text-2xl font-black text-zinc-700">
+            <div className="text-[11px] sm:text-xs text-zinc-500 font-semibold mb-0.5 leading-tight">Total Service Volume</div>
+            <div className="text-xl sm:text-2xl font-black text-zinc-700 dark:text-zinc-200 tabular-nums">
               {formatCurrency(metrics.totalVolume)}
             </div>
-            <div className="text-[11px] text-zinc-400 mt-0.5">Direct to artisans + 5% platform fee</div>
+            <div className="text-[10px] sm:text-[11px] text-zinc-400 mt-0.5 truncate">Direct to workers + 5% fee</div>
           </div>
 
           {/* Customer Commission Collected */}
-          <div className="kpi-card border-l-4 border-l-emerald-600">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-zinc-700 flex items-center justify-center mb-3">
-              <Coins className="w-5 h-5" />
+          <div className="kpi-card p-3 sm:p-5 border-l-4 border-l-emerald-600">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-50 text-zinc-700 flex items-center justify-center mb-2 sm:mb-3">
+              <Coins className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div className="text-xs text-zinc-500 font-semibold mb-0.5">Total Commission Collected</div>
-            <div className="text-2xl font-black text-zinc-700">
+            <div className="text-[11px] sm:text-xs text-zinc-500 font-semibold mb-0.5 leading-tight">Total Commission Collected</div>
+            <div className="text-xl sm:text-2xl font-black text-zinc-700 dark:text-zinc-200 tabular-nums">
               {formatCurrency(metrics.totalCommissionCollected)}
             </div>
-            <div className="text-[11px] text-zinc-400 mt-0.5">5% Fee from Digital & Cash Dues</div>
+            <div className="text-[10px] sm:text-[11px] text-zinc-400 mt-0.5 truncate">5% Fee from Digital & Cash Dues</div>
           </div>
 
           {/* Outstanding Worker Cash Dues */}
-          <div className="kpi-card border-l-4 border-l-amber-500">
-            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
-              <IndianRupee className="w-5 h-5" />
+          <div className="kpi-card p-3 sm:p-5 border-l-4 border-l-amber-500">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-2 sm:mb-3">
+              <IndianRupee className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div className="text-xs text-zinc-500 font-semibold mb-0.5">Outstanding Worker Cash Dues</div>
-            <div className="text-2xl font-black text-amber-600">
+            <div className="text-[11px] sm:text-xs text-zinc-500 font-semibold mb-0.5 leading-tight">Outstanding Worker Cash Dues</div>
+            <div className="text-xl sm:text-2xl font-black text-amber-600 tabular-nums">
               {formatCurrency(metrics.totalOutstandingWorkerDues)}
             </div>
-            <div className="text-[11px] text-zinc-400 mt-0.5">
-              {metrics.suspendedArtisans > 0 ? `  ${metrics.suspendedArtisans} Workers Suspended` : 'All workers within ₹300 limit'}
+            <div className="text-[10px] sm:text-[11px] text-zinc-400 mt-0.5 truncate">
+              {metrics.suspendedArtisans > 0 ? `${metrics.suspendedArtisans} Workers Suspended` : 'All workers within ₹300 limit'}
             </div>
           </div>
 
           {/* Active Workers & Welfare Pool */}
-          <div className="kpi-card border-l-4 border-l-violet-600">
-            <div className="w-9 h-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center mb-3">
-              <Users className="w-5 h-5" />
+          <div className="kpi-card p-3 sm:p-5 border-l-4 border-l-violet-600">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center mb-2 sm:mb-3">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
-            <div className="text-xs text-zinc-500 font-semibold mb-0.5">Active Village Workers</div>
-            <div className="text-2xl font-black text-violet-600">
+            <div className="text-[11px] sm:text-xs text-zinc-500 font-semibold mb-0.5 leading-tight">Active Village Workers</div>
+            <div className="text-xl sm:text-2xl font-black text-violet-600 tabular-nums">
               {metrics.activeArtisans} <span className="text-xs font-normal text-zinc-400">({metrics.verifiedArtisans} Verified)</span>
             </div>
-            <div className="text-[11px] text-zinc-400 mt-0.5">
+            <div className="text-[10px] sm:text-[11px] text-zinc-400 mt-0.5 truncate">
               Welfare Pool: {formatCurrency(metrics.welfareFundBalance)}
             </div>
           </div>
         </div>
 
         {/* Section 1: Trade Category Base Price Management */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <IndianRupee className="w-5 h-5 text-zinc-700" />
-              <h2 className="text-base font-black text-slate-900">Trade Category Base Diagnostic Price Matrix</h2>
-            </div>
-            <p className="text-xs text-zinc-500">Admin-controlled standard base prices (₹) across village cluster trades</p>
+        <section className="space-y-3 sm:space-y-4">
+          <div>
+            <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-zinc-50">Trade Category Base Diagnostic Price Matrix</h2>
           </div>
 
           <div className="card overflow-hidden">
@@ -351,12 +347,10 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* Section 2: Worker Dues, Status & Suspension Governance Table */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-zinc-700" />
-              <h2 className="text-base font-black text-slate-900">Worker Cash Commission Dues & Suspension Ledger</h2>
-            </div>
+        {/* Section 2: Worker Dues & Automatic Suspension Ledger */}
+        <section className="space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-zinc-50">Worker Cash Commission Dues & Suspension Ledger</h2>
             <span className="text-xs text-zinc-500">Automated pause threshold: ₹300</span>
           </div>
 
@@ -455,14 +449,11 @@ export default function AdminDashboardPage() {
         </section>
 
         {/* Section 3: Worker KYC Verification Desk */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <BadgeCheck className="w-5 h-5 text-zinc-700" />
-              <h2 className="text-base font-black text-slate-900">Worker KYC Review & Verification Desk</h2>
-            </div>
+        <section className="space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-zinc-50">Worker KYC Review & Verification Desk</h2>
             {metrics.pendingKyc > 0 && (
-              <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold flex items-center gap-1">
+              <span className="px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-1 self-start sm:self-auto border border-amber-200 dark:border-amber-900">
                 <AlertTriangle className="w-3.5 h-3.5" /> {metrics.pendingKyc} Pending Review
               </span>
             )}
