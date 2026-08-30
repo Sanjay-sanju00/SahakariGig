@@ -1895,8 +1895,12 @@ export default function MarketplacePage() {
           </div>
           {!currentUser && (
             <div>
-              <a href="/admin/login" className="text-zinc-600 dark:text-zinc-400 font-semibold hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center gap-1">
-                <Shield className="w-3 h-3" /> PACS Admin Console
+              <a
+                href="/admin/login"
+                className="text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 font-semibold hover:underline flex items-center gap-1 transition-colors"
+              >
+                <Shield className="w-3 h-3 text-sky-500 dark:text-sky-400" />
+                <span>PACS Admin Sign In</span>
               </a>
             </div>
           )}
