@@ -1162,7 +1162,6 @@ export default function MarketplacePage() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <ThemeToggle />
             {currentUser ? (
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="hidden md:block text-right">
