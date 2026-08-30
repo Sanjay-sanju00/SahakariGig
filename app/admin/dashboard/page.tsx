@@ -91,15 +91,13 @@ export default function AdminDashboardPage() {
   }
 
   // KYC Approval / Rejection Action
-  async function handleKycAction(userId: string, status: 'VERIFIED' | 'REJECTED') {
+  async function handleKycAction(userId: string, status: 'VERIFIED' | 'REJECTED' | 'PENDING') {
     setUpdatingKycId(userId);
-    setTimeout(() => {
-      dataService.updateWorker(userId, { kycStatus: status });
-      setUpdatingKycId(null);
-      setSelectedWorkerKyc(null);
-      showToast(`Artisan KYC status updated to ${status}`);
-      fetchData();
-    }, 300);
+    dataService.updateWorker(userId, { kycStatus: status });
+    setUpdatingKycId(null);
+    setSelectedWorkerKyc(null);
+    showToast(`Artisan KYC status updated to ${status}`);
+    fetchData();
   }
 
   // Service Base Price Update
@@ -489,23 +487,36 @@ export default function AdminDashboardPage() {
                       <td className="px-4 py-3.5 text-right">
                         {updatingKycId === w.userId ? (
                           <Loader2 className="w-4 h-4 animate-spin text-zinc-700 dark:text-zinc-300 inline" />
-                        ) : w.kycStatus === 'PENDING' ? (
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleKycAction(w.userId, 'REJECTED')}
-                              className="btn-danger text-xs py-1 px-2.5 font-bold"
-                            >
-                              <XCircle className="w-3.5 h-3.5" /> Reject
-                            </button>
-                            <button
-                              onClick={() => handleKycAction(w.userId, 'VERIFIED')}
-                              className="btn-success text-xs py-1 px-3 font-bold shadow-sm"
-                            >
-                              <CheckCircle className="w-3.5 h-3.5" /> Approve KYC
-                            </button>
-                          </div>
                         ) : (
-                          <span className="text-zinc-400 dark:text-zinc-500 text-[11px] font-medium">— Verified</span>
+                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                            {w.kycStatus !== 'VERIFIED' && (
+                              <button
+                                onClick={() => handleKycAction(w.userId, 'VERIFIED')}
+                                className="btn-primary text-[11px] py-1 px-2.5 font-bold shadow-sm flex items-center gap-1"
+                                title="Approve & Verify Artisan"
+                              >
+                                <CheckCircle className="w-3.5 h-3.5" /> Approve
+                              </button>
+                            )}
+                            {w.kycStatus !== 'REJECTED' && (
+                              <button
+                                onClick={() => handleKycAction(w.userId, 'REJECTED')}
+                                className="btn-secondary text-[11px] py-1 px-2 font-semibold text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-1"
+                                title="Reject KYC"
+                              >
+                                <XCircle className="w-3.5 h-3.5" /> Reject
+                              </button>
+                            )}
+                            {w.kycStatus === 'VERIFIED' && (
+                              <button
+                                onClick={() => handleKycAction(w.userId, 'PENDING')}
+                                className="btn-secondary text-[11px] py-1 px-2 font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                                title="Revoke and set to Pending"
+                              >
+                                Revoke
+                              </button>
+                            )}
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -521,20 +532,20 @@ export default function AdminDashboardPage() {
       {selectedWorkerKyc && (
         <div className="modal-backdrop" onClick={() => setSelectedWorkerKyc(null)}>
           <div className="modal-box p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
               <div className="flex items-center gap-2">
-                <BadgeCheck className="w-5 h-5 text-zinc-700" />
-                <h3 className="font-bold text-slate-900 text-sm">Artisan KYC Identity Card</h3>
+                <BadgeCheck className="w-5 h-5 text-zinc-700 dark:text-zinc-300" />
+                <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-sm">Artisan KYC Identity Card</h3>
               </div>
-              <button onClick={() => setSelectedWorkerKyc(null)} className="p-1 rounded hover:bg-zinc-100">
+              <button onClick={() => setSelectedWorkerKyc(null)} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800">
                 <X className="w-4 h-4 text-zinc-400" />
               </button>
             </div>
 
-            <div className="rounded-2xl border-2 border-blue-300 dark:border-blue-700 bg-gradient-to-b from-white to-blue-50/50 dark:from-slate-900 dark:to-blue-950/40 p-5 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-blue-100 dark:border-blue-900/60">
+            <div className="rounded-2xl border border-zinc-200 dark:border-zinc-700/60 bg-zinc-50 dark:bg-zinc-900/60 p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-zinc-800/60">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-zinc-950 flex items-center justify-center text-white text-xs font-black">
+                  <div className="w-7 h-7 rounded-lg bg-zinc-950 dark:bg-zinc-100 flex items-center justify-center text-white dark:text-zinc-950 text-xs font-black">
                     <Leaf className="w-4 h-4" />
                   </div>
                   <div>
@@ -542,26 +553,26 @@ export default function AdminDashboardPage() {
                     <div className="text-[10px] text-zinc-500 font-medium">District Cooperative Federation · Artisan Registry Card</div>
                   </div>
                 </div>
-                <div className="px-2 py-0.5 rounded bg-zinc-950 text-white font-mono text-[10px] font-bold">
+                <div className="px-2 py-0.5 rounded bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 font-mono text-[10px] font-bold">
                   PASS-2026
                 </div>
               </div>
 
               <div className="flex gap-4 items-center">
-                <div className="w-16 h-16 rounded-xl bg-zinc-950 text-white flex flex-col items-center justify-center font-black text-xl shadow-md shrink-0 border-2 border-white dark:border-slate-800">
+                <div className="w-16 h-16 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex flex-col items-center justify-center font-black text-xl shadow-md shrink-0 border-2 border-white dark:border-zinc-800">
                   {selectedWorkerKyc.name.charAt(0)}
                   <span className="text-[9px] font-normal opacity-75 uppercase mt-0.5">Artisan</span>
                 </div>
 
                 <div className="space-y-1 flex-1">
                   <div className="font-black text-zinc-900 dark:text-zinc-50 text-base leading-none">{selectedWorkerKyc.name}</div>
-                  <div className="text-xs font-bold text-blue-700 dark:text-blue-400">{selectedWorkerKyc.trade || 'General Maintenance'}</div>
+                  <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300">{selectedWorkerKyc.trade || 'General Maintenance'}</div>
                   <div className="text-[11px] text-zinc-500 font-mono">Reg No: PACS-ART-{selectedWorkerKyc.userId.slice(-6).toUpperCase()}</div>
                   <div className="text-[11px] text-zinc-500">Contact: {selectedWorkerKyc.phone || '9876543210'} · {selectedWorkerKyc.email}</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 bg-white dark:bg-zinc-900/90 p-3 rounded-xl border border-blue-100 dark:border-blue-900/60 text-xs">
+              <div className="grid grid-cols-2 gap-2 bg-white dark:bg-zinc-900/90 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs">
                 <div>
                   <span className="text-[10px] text-zinc-400 dark:text-zinc-500 block font-semibold">Verified Trade Skills</span>
                   <span className="font-bold text-zinc-800 dark:text-zinc-200 text-[11px]">{selectedWorkerKyc.skills.join(', ')}</span>
@@ -579,11 +590,11 @@ export default function AdminDashboardPage() {
                   <BadgeCheck className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
                   <span>Current Committee Status: <strong className="text-zinc-900 dark:text-zinc-50">{selectedWorkerKyc.kycStatus}</strong></span>
                 </div>
-                <span className="text-emerald-700 dark:text-zinc-300 font-bold"> Direct Payouts Active</span>
+                <span className="font-bold text-zinc-700 dark:text-zinc-300">Direct Payouts Active</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
               <button
                 onClick={() => setSelectedWorkerKyc(null)}
                 className="btn-secondary text-xs py-2 px-4 font-bold"
@@ -592,25 +603,29 @@ export default function AdminDashboardPage() {
               </button>
 
               <div className="flex items-center gap-2">
-                {selectedWorkerKyc.kycStatus === 'PENDING' ? (
-                  <>
-                    <button
-                      onClick={() => handleKycAction(selectedWorkerKyc.userId, 'REJECTED')}
-                      className="btn-danger text-xs py-2 px-3 font-bold"
-                    >
-                      <XCircle className="w-3.5 h-3.5" /> Reject KYC
-                    </button>
-                    <button
-                      onClick={() => handleKycAction(selectedWorkerKyc.userId, 'VERIFIED')}
-                      className="btn-success text-xs py-2 px-4 font-bold shadow-sm"
-                    >
-                      <CheckCircle className="w-3.5 h-3.5" /> Approve KYC Document
-                    </button>
-                  </>
-                ) : (
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 flex items-center gap-1">
-                    <CheckCircle className="w-4 h-4" /> KYC Document Verified
-                  </span>
+                {selectedWorkerKyc.kycStatus !== 'VERIFIED' && (
+                  <button
+                    onClick={() => handleKycAction(selectedWorkerKyc.userId, 'VERIFIED')}
+                    className="btn-primary text-xs py-2 px-4 font-bold shadow-sm flex items-center gap-1.5"
+                  >
+                    <CheckCircle className="w-4 h-4" /> Approve & Verify
+                  </button>
+                )}
+                {selectedWorkerKyc.kycStatus !== 'REJECTED' && (
+                  <button
+                    onClick={() => handleKycAction(selectedWorkerKyc.userId, 'REJECTED')}
+                    className="btn-secondary text-xs py-2 px-3.5 font-semibold text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/60 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center gap-1.5"
+                  >
+                    <XCircle className="w-4 h-4" /> Reject KYC
+                  </button>
+                )}
+                {selectedWorkerKyc.kycStatus === 'VERIFIED' && (
+                  <button
+                    onClick={() => handleKycAction(selectedWorkerKyc.userId, 'PENDING')}
+                    className="btn-secondary text-xs py-2 px-3 font-semibold text-zinc-600 dark:text-zinc-400"
+                  >
+                    Revoke Verification
+                  </button>
                 )}
               </div>
             </div>

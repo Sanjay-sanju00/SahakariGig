@@ -1043,8 +1043,11 @@ export default function MarketplacePage() {
     return found?.basePrice || found?.price || 150;
   }
 
-  // Filter Active, Non-Suspended, KYC Verified Artisans
+  // Filter Active, Non-Suspended, KYC Verified Artisans Only
   const eligibleWorkers = workers.filter((w) => {
+    // Only verified artisans can be listed or booked by residents
+    if (w.kycStatus !== 'VERIFIED') return false;
+
     const isSuspended = w.accountStatus === 'SUSPENDED_UNPAID_DUES' || (w.outstandingDues || 0) >= 300;
     if (isSuspended) return false;
 

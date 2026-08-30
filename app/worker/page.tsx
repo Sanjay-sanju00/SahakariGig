@@ -800,6 +800,15 @@ export default function WorkerDashboardPage() {
   async function handleToggleAvailability() {
     if (!currentUser || !workerProfile) return;
 
+    if (workerProfile.kycStatus !== 'VERIFIED') {
+      showToast(
+        workerProfile.kycStatus === 'REJECTED'
+          ? 'KYC verification was rejected. Please contact your local PACS office.'
+          : 'Artisan KYC is pending approval from the PACS Admin. You can go online once verified.'
+      );
+      return;
+    }
+
     if (workerProfile.accountStatus === 'SUSPENDED_UNPAID_DUES' || (workerProfile.outstandingDues || 0) >= 300) {
       showToast('Account temporarily paused due to unpaid PACS dues (₹' + workerProfile.outstandingDues + '). Please clear dues to go online.');
       return;
@@ -833,6 +842,11 @@ export default function WorkerDashboardPage() {
   // Step 1: Accept Request -> IN_PROGRESS
   async function handleAcceptJob(bookingId: string) {
     if (!currentUser || !workerProfile) return;
+
+    if (workerProfile.kycStatus !== 'VERIFIED') {
+      showToast('KYC Verification by PACS Admin is required before accepting jobs.');
+      return;
+    }
 
     if (workerProfile.accountStatus === 'SUSPENDED_UNPAID_DUES' || (workerProfile.outstandingDues || 0) >= 300) {
       showToast('Account paused due to unpaid dues. Please clear outstanding PACS dues to accept jobs.');
@@ -985,6 +999,36 @@ export default function WorkerDashboardPage() {
               </button>
             </div>
           </div>
+        )}        {/* -- KYC VERIFICATION STATUS ALERT BANNER -- */}
+        {workerProfile && workerProfile.kycStatus !== 'VERIFIED' && (
+          <div className={`p-5 rounded-2xl border shadow-sm space-y-2 animate-fadein ${
+            workerProfile.kycStatus === 'REJECTED'
+              ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900/60'
+              : 'bg-zinc-100 dark:bg-zinc-900/60 border-zinc-200 dark:border-zinc-700/60'
+          }`}>
+            <div className="flex items-start gap-3.5">
+              <div className="w-9 h-9 rounded-xl bg-zinc-950 dark:bg-zinc-100 text-white dark:text-zinc-950 flex items-center justify-center shrink-0">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-sm flex items-center gap-2">
+                  <span>
+                    {workerProfile.kycStatus === 'REJECTED'
+                      ? 'Artisan KYC Verification Rejected'
+                      : 'Artisan KYC Verification Under Review'}
+                  </span>
+                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                    {workerProfile.kycStatus}
+                  </span>
+                </h3>
+                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 max-w-xl leading-relaxed">
+                  {workerProfile.kycStatus === 'REJECTED'
+                    ? 'Your trade verification was rejected by the Primary Cooperative Services Society board. Please contact your society desk.'
+                    : 'Your registration documents have been submitted to the PACS Administration Board. Once verified by the committee, your profile will be activated for resident discovery and you will start receiving job requests.'}
+                </p>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* -- Cooperative Profile Banner -- */}
@@ -992,15 +1036,27 @@ export default function WorkerDashboardPage() {
           <div>
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1.5 ${
-                !isSuspended
+                workerProfile?.kycStatus !== 'VERIFIED'
+                  ? 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                  : !isSuspended
                   ? 'bg-zinc-100 text-zinc-300 border border-zinc-500/30'
                   : 'bg-red-400/20 text-red-200 border border-red-400/30'
               }`}>
-                {!isSuspended ? <BadgeCheck className="w-3.5 h-3.5 text-zinc-300" /> : <AlertTriangle className="w-3.5 h-3.5 text-zinc-400" />}
-                {!isSuspended ? 'Account Active & Verified' : 'Account Paused (Unpaid Dues)'}
+                {workerProfile?.kycStatus !== 'VERIFIED' ? (
+                  <Shield className="w-3.5 h-3.5 text-zinc-400" />
+                ) : !isSuspended ? (
+                  <BadgeCheck className="w-3.5 h-3.5 text-zinc-300" />
+                ) : (
+                  <AlertTriangle className="w-3.5 h-3.5 text-zinc-400" />
+                )}
+                {workerProfile?.kycStatus !== 'VERIFIED'
+                  ? `Verification ${workerProfile?.kycStatus || 'Pending'}`
+                  : !isSuspended
+                  ? 'Account Active & Verified'
+                  : 'Account Paused (Unpaid Dues)'}
               </span>
 
-              {outstandingDues > 0 && !isSuspended && (
+              {outstandingDues > 0 && !isSuspended && workerProfile?.kycStatus === 'VERIFIED' && (
                 <span className="text-[11px] font-bold text-amber-200 bg-amber-900/40 border border-amber-400/30 px-2 py-0.5 rounded-full">
                   Outstanding Dues: {formatCurrency(outstandingDues)} / ₹300 limit
                 </span>
@@ -1026,9 +1082,11 @@ export default function WorkerDashboardPage() {
             <div>
               <div className="text-[11px] text-zinc-400 font-medium">Job Dispatching Status</div>
               <div className="text-xs font-bold text-white flex items-center gap-1.5 mt-0.5">
-                <span className={`w-2 h-2 rounded-full ${workerProfile?.isAvailable && !isSuspended ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
+                <span className={`w-2 h-2 rounded-full ${workerProfile?.kycStatus === 'VERIFIED' && workerProfile?.isAvailable && !isSuspended ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-500'}`} />
                 <span>
-                  {!isSuspended
+                  {workerProfile?.kycStatus !== 'VERIFIED'
+                    ? 'Verification Required'
+                    : !isSuspended
                     ? (workerProfile?.isAvailable ? 'Online (Accepting Jobs)' : 'Offline')
                     : 'Locked Offline (Clear Dues)'}
                 </span>
@@ -1037,9 +1095,9 @@ export default function WorkerDashboardPage() {
             <button
               onClick={handleToggleAvailability}
               className="transition-transform active:scale-95"
-              title={!isSuspended ? 'Toggle Availability' : 'Clear Dues to Go Online'}
+              title={workerProfile?.kycStatus !== 'VERIFIED' ? 'Verification Pending' : !isSuspended ? 'Toggle Availability' : 'Clear Dues to Go Online'}
             >
-              {workerProfile?.isAvailable && !isSuspended ? (
+              {workerProfile?.kycStatus === 'VERIFIED' && workerProfile?.isAvailable && !isSuspended ? (
                 <ToggleRight className="w-9 h-9 text-zinc-300" />
               ) : (
                 <ToggleLeft className="w-9 h-9 text-zinc-300" />
@@ -1048,63 +1106,44 @@ export default function WorkerDashboardPage() {
           </div>
         </div>
 
-        {/* -- Real-time Earnings & 3-Factor Trust Metrics -- */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Wallet */}
-          <div className="kpi-card border-l-4 border-l-emerald-600 bg-white dark:bg-zinc-900">
-            <div className="text-xs text-zinc-500 font-semibold mb-1">Take-Home Earnings Wallet</div>
-            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50">
-              {formatCurrency(workerProfile?.totalEarnings || 0)}
+        {/* -- Key Performance Metrics Grid -- */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="card p-4 space-y-1">
+            <div className="text-xs text-zinc-500 flex items-center gap-1">
+              <Coins className="w-3.5 h-3.5 text-zinc-400" /> Total Direct Earnings
             </div>
-            <div className="text-[11px] text-zinc-600 dark:text-zinc-300 font-bold mt-0.5">100% Direct Payouts</div>
+            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50">{formatCurrency(workerProfile?.totalEarnings || 0)}</div>
+            <div className="text-[10px] text-zinc-400">100% Payout · Zero Commission Cut</div>
           </div>
 
-          {/* Outstanding PACS Dues Card */}
-          <div className={`kpi-card border-l-4 ${outstandingDues >= 300 ? 'border-l-red-600 bg-red-50/20' : 'border-l-amber-500 bg-white'} dark:bg-zinc-900`}>
-            <div className="text-xs text-zinc-500 font-semibold mb-1">Outstanding PACS Commission Dues</div>
-            <div className="flex items-center justify-between">
-              <div className={`text-2xl font-black ${outstandingDues >= 300 ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-50'}`}>
-                {formatCurrency(outstandingDues)}
-              </div>
-              {outstandingDues > 0 && (
-                <button
-                  onClick={handlePayOutstandingDues}
-                  disabled={settlingDues}
-                  className="btn-primary text-[10px] py-1 px-2.5 font-bold"
-                >
-                  Pay Dues
-                </button>
-              )}
+          <div className="card p-4 space-y-1">
+            <div className="text-xs text-zinc-500 flex items-center gap-1">
+              <CheckCircle className="w-3.5 h-3.5 text-zinc-400" /> Completed Jobs
             </div>
-            <div className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">
-              {outstandingDues >= 300 ? ' Limit exceeded (Suspended)' : `Threshold: ₹300 limit`}
-            </div>
+            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50">{workerProfile?.completedJobs || 0}</div>
+            <div className="text-[10px] text-zinc-400">Services Delivered</div>
           </div>
 
-          {/* 3-Factor Quality Scores Card */}
-          <div className="kpi-card border-l-4 border-l-blue-600 bg-white dark:bg-zinc-900">
-            <div className="text-xs text-zinc-500 font-semibold mb-1">3-Factor Performance Ratings</div>
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-zinc-600 dark:text-zinc-400"> Work Quality:</span>
-                <span className="font-bold text-zinc-900 dark:text-zinc-50">{(workerProfile?.qualityRating || 4.9).toFixed(1)} / 5</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-600 dark:text-zinc-400"> Behavior:</span>
-                <span className="font-bold text-zinc-900 dark:text-zinc-50">{(workerProfile?.behaviorRating || 4.8).toFixed(1)} / 5</span>
-              </div>
+          <div className="card p-4 space-y-1">
+            <div className="text-xs text-zinc-500 flex items-center gap-1">
+              <Star className="w-3.5 h-3.5 text-zinc-400" /> Work Quality Rating
             </div>
+            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50 flex items-center gap-1">
+              <span>{(workerProfile?.qualityRating || 5.0).toFixed(1)}</span>
+              <span className="text-xs text-zinc-400 font-normal">/ 5.0</span>
+            </div>
+            <div className="text-[10px] text-zinc-400">Skill Quality Score</div>
           </div>
 
-          {/* Pricing Fairness & Overcharge Rating Card */}
-          <div className="kpi-card border-l-4 border-l-violet-600 bg-white dark:bg-zinc-900">
-            <div className="text-xs text-zinc-500 font-semibold mb-1">Pricing Fairness Score</div>
-            <div className="text-2xl font-black text-violet-600 dark:text-violet-400">
-              {(workerProfile?.pricingRating || 4.9).toFixed(1)} <span className="text-sm font-bold text-zinc-400">/ 5.0</span>
+          <div className="card p-4 space-y-1">
+            <div className="text-xs text-zinc-500 flex items-center gap-1">
+              <Shield className="w-3.5 h-3.5 text-zinc-400" /> Pricing Fairness
             </div>
-            <div className="text-[11px] text-zinc-900 dark:text-zinc-50 font-bold mt-0.5">
-              {workerProfile?.fairPricingPercentage || 98}% Fair Value Rating
+            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50 flex items-center gap-1">
+              <span>{workerProfile?.pricingRating ? workerProfile.pricingRating.toFixed(1) : '5.0'}</span>
+              <span className="text-xs text-zinc-400 font-normal">/ 5.0</span>
             </div>
+            <div className="text-[10px] text-zinc-400">{workerProfile?.fairPricingPercentage || 100}% Fair Pricing Score</div>
           </div>
         </div>
 
@@ -1118,7 +1157,19 @@ export default function WorkerDashboardPage() {
             </div>
           </div>
 
-          {isSuspended ? (
+          {workerProfile?.kycStatus !== 'VERIFIED' ? (
+            <div className="card p-8 text-center space-y-2">
+              <Shield className="w-8 h-8 text-zinc-400 mx-auto" />
+              <div className="font-bold text-zinc-700 dark:text-zinc-300">
+                {workerProfile?.kycStatus === 'REJECTED' ? 'KYC Verification Rejected' : 'KYC Verification Pending'}
+              </div>
+              <p className="text-xs text-zinc-400 max-w-md mx-auto">
+                {workerProfile?.kycStatus === 'REJECTED'
+                  ? 'Your profile could not be approved by the PACS board. Please contact your local cooperative office.'
+                  : 'Your artisan registration is under review by the PACS Administrative Board. Once approved, you will appear in resident search and receive job requests.'}
+              </p>
+            </div>
+          ) : isSuspended ? (
             <div className="card p-8 text-center space-y-2 border-zinc-200 dark:border-zinc-700/60 bg-red-50/30 dark:bg-red-950/20">
               <AlertTriangle className="w-8 h-8 text-red-600 mx-auto" />
               <div className="font-bold text-red-900 dark:text-zinc-400">Incoming Requests Paused</div>

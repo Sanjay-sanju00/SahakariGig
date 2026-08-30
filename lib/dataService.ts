@@ -803,6 +803,17 @@ export const dataService = {
     if (idx !== -1) {
       workers[idx] = { ...workers[idx], ...update };
       setItem(LS_KEY_WORKERS, workers);
+
+      // Synchronize User table isVerified status
+      if (update.kycStatus !== undefined) {
+        const users = this.getUsers();
+        const uIdx = users.findIndex((u) => u.id === userId);
+        if (uIdx !== -1) {
+          users[uIdx].isVerified = update.kycStatus === 'VERIFIED';
+          setItem(LS_KEY_USERS, users);
+        }
+      }
+
       if (update.kycStatus === 'VERIFIED') {
         this.incrementWelfare(250);
       }
