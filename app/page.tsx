@@ -1896,10 +1896,11 @@ export default function MarketplacePage() {
             <div>
               <a
                 href="/admin/login"
-                className="text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 font-semibold hover:underline flex items-center gap-1 transition-colors"
+                className="text-sky-500 hover:text-sky-600 dark:text-sky-400 dark:hover:text-sky-300 font-bold hover:underline flex items-center gap-1.5 transition-colors"
+                style={{ color: 'var(--sky-400, #38bdf8)' }}
               >
-                <Shield className="w-3 h-3 text-sky-500 dark:text-sky-400" />
-                <span>PACS Admin Sign In</span>
+                <Shield className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
+                <span className="text-sky-500 dark:text-sky-400">PACS Admin Sign In</span>
               </a>
             </div>
           )}

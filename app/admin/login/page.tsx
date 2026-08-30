@@ -130,12 +130,12 @@ export default function AdminLoginPage() {
 
           <button
             type="submit"
-            className="btn-primary w-full py-3 text-sm font-bold shadow-sm mt-2"
+            className="btn-primary w-full py-3 text-sm font-bold shadow-sm mt-2 dark:bg-sky-500 dark:hover:bg-sky-400 dark:text-zinc-950 transition-colors"
             disabled={loading}
           >
             {loading ? (
               <span className="inline-flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white dark:border-zinc-900/30 dark:border-t-zinc-900 rounded-full animate-spin" />
                 Authenticating Session...
               </span>
             ) : (
