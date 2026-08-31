@@ -335,51 +335,45 @@ function DynamicInvoiceModal({ booking, onClose, onSubmitInvoice }: DynamicInvoi
   );
 }
 
-// --- Subscription Pass Modal ------------------------------------------------
-interface SubscriptionModalProps {
+// --- Pay Outstanding Dues Modal ---------------------------------------------
+interface PayDuesModalProps {
   worker: WorkerProfile;
-  monthlyRate: number;
-  yearlyRate: number;
+  duesAmount: number;
   onClose: () => void;
-  onSubscribed: (updatedWorker: WorkerProfile) => void;
+  onPaid: () => void;
 }
 
-function SubscriptionModal({ worker, monthlyRate, yearlyRate, onClose, onSubscribed }: SubscriptionModalProps) {
-  const [selectedPlan, setSelectedPlan] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+function PayDuesModal({ worker, duesAmount, onClose, onPaid }: PayDuesModalProps) {
+  const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'NETBANKING' | 'CASH_DESK'>('UPI');
+  const [paying, setPaying] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const isExpired = !worker.passValidUntil || new Date(worker.passValidUntil).getTime() <= Date.now();
-
-  async function handleSubscribe() {
-    setLoading(true);
-    setError('');
+  function handlePayDues(e: React.FormEvent) {
+    e.preventDefault();
+    setPaying(true);
     setTimeout(() => {
-      const updated = dataService.subscribeWorker(worker.userId, selectedPlan);
-      if (updated) {
-        onSubscribed(updated);
-      } else {
-        setError('Failed to activate pass. Please try again.');
-      }
-      setLoading(false);
-    }, 300);
+      dataService.payWorkerDues(worker.userId);
+      setPaying(false);
+      setSuccess(true);
+      setTimeout(() => {
+        onPaid();
+      }, 800);
+    }, 500);
   }
-
-  const activeCost = selectedPlan === 'YEARLY' ? yearlyRate : monthlyRate;
 
   return (
     <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal-box p-6 space-y-5" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-box p-6 space-y-4 max-w-md" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-zinc-950 text-white flex items-center justify-center shadow-md">
-              <Coins className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md">
+              <Banknote className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-base">
-                {isExpired ? 'Subscribe / Renew Artisan Pass' : 'Extend / Upgrade Membership Pass'}
+                Pay Outstanding PACS Dues
               </h3>
-              <p className="text-xs text-zinc-500">Cooperative Society Zero-Commission Access</p>
+              <p className="text-xs text-zinc-500">Cooperative Society Platform Fee Settlement</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400">
@@ -387,85 +381,133 @@ function SubscriptionModal({ worker, monthlyRate, yearlyRate, onClose, onSubscri
           </button>
         </div>
 
-        {error && (
-          <div className="p-3 rounded-xl bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-700/60 text-zinc-700 dark:text-zinc-300 text-xs font-semibold">
-            {error}
+        {success ? (
+          <div className="p-6 text-center space-y-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800">
+            <CheckCircle className="w-12 h-12 text-emerald-600 dark:text-emerald-400 mx-auto animate-bounce" />
+            <h4 className="font-bold text-emerald-900 dark:text-emerald-200 text-sm">
+              Payment of {formatCurrency(duesAmount)} Settled!
+            </h4>
+            <p className="text-xs text-emerald-700 dark:text-emerald-300">
+              Your dues have been cleared. Your worker account is now fully active and online.
+            </p>
           </div>
+        ) : (
+          <form onSubmit={handlePayDues} className="space-y-4">
+            {/* Amount Summary Card */}
+            <div className="p-4 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 space-y-2 text-xs">
+              <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
+                <span>Worker Name:</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-50">{worker.name}</span>
+              </div>
+              <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
+                <span>Primary Cooperative Society:</span>
+                <span className="font-semibold text-zinc-900 dark:text-zinc-50">{worker.localSociety || 'Primary Cooperative Society'}</span>
+              </div>
+              <div className="flex justify-between font-bold text-zinc-900 dark:text-zinc-50 pt-2 border-t border-zinc-200 dark:border-zinc-700/60 text-sm">
+                <span>Total Outstanding Platform Fee Dues:</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-black text-base">{formatCurrency(duesAmount)}</span>
+              </div>
+              <p className="text-[11px] text-zinc-400 pt-1">
+                This represents the 5% platform fee collected in cash from customers on completed orders.
+              </p>
+            </div>
+
+            {/* Payment Method Selector */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300 block">
+                Select Settlement Method
+              </label>
+
+              <div className="space-y-2">
+                <div
+                  onClick={() => setPaymentMethod('UPI')}
+                  className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                    paymentMethod === 'UPI'
+                      ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30'
+                      : 'border-zinc-200 dark:border-zinc-700/60 hover:bg-zinc-50 dark:hover:bg-zinc-800/40'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-4 h-4 rounded-full border-2 flex items-center justify-center border-emerald-600">
+                      {paymentMethod === 'UPI' && <span className="w-2 h-2 rounded-full bg-emerald-600" />}
+                    </span>
+                    <div>
+                      <span className="font-bold text-zinc-900 dark:text-zinc-50 text-xs block">Instant UPI (GPay / PhonePe / Paytm / QR)</span>
+                      <span className="text-[10px] text-zinc-500">Zero fee instant automated settlement</span>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-600">Recommended</span>
+                </div>
+
+                <div
+                  onClick={() => setPaymentMethod('NETBANKING')}
+                  className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                    paymentMethod === 'NETBANKING'
+                      ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30'
+                      : 'border-zinc-200 dark:border-zinc-700/60 hover:bg-zinc-50 dark:hover:bg-zinc-800/40'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-4 h-4 rounded-full border-2 flex items-center justify-center border-emerald-600">
+                      {paymentMethod === 'NETBANKING' && <span className="w-2 h-2 rounded-full bg-emerald-600" />}
+                    </span>
+                    <div>
+                      <span className="font-bold text-zinc-900 dark:text-zinc-50 text-xs block">Cooperative Bank / Net Banking</span>
+                      <span className="text-[10px] text-zinc-500">Direct transfer to PACS Bank account</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setPaymentMethod('CASH_DESK')}
+                  className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                    paymentMethod === 'CASH_DESK'
+                      ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30'
+                      : 'border-zinc-200 dark:border-zinc-700/60 hover:bg-zinc-50 dark:hover:bg-zinc-800/40'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-4 h-4 rounded-full border-2 flex items-center justify-center border-emerald-600">
+                      {paymentMethod === 'CASH_DESK' && <span className="w-2 h-2 rounded-full bg-emerald-600" />}
+                    </span>
+                    <div>
+                      <span className="font-bold text-zinc-900 dark:text-zinc-50 text-xs block">Deposit at PACS Village Desk</span>
+                      <span className="text-[10px] text-zinc-500">Hand over physical cash to PACS Secretary</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="pt-2 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-secondary text-xs py-2 px-4 font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={paying}
+                className="btn-primary text-xs py-2.5 px-6 font-bold shadow-md bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2"
+              >
+                {paying ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Processing Payment...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Pay {formatCurrency(duesAmount)} & Clear Dues</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         )}
-
-        {/* Plan Selection Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Monthly Option */}
-          <div
-            onClick={() => setSelectedPlan('MONTHLY')}
-            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              selectedPlan === 'MONTHLY'
-                ? 'border-zinc-900 bg-zinc-50 dark:bg-zinc-900/60 shadow-sm'
-                : 'border-zinc-200 dark:border-zinc-700/60 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                Monthly Pass
-              </span>
-              <span className="w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-bold border-zinc-500">
-                {selectedPlan === 'MONTHLY' ? '' : ''}
-              </span>
-            </div>
-            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50">
-              {formatCurrency(monthlyRate)} <span className="text-xs font-normal text-zinc-500">/mo</span>
-            </div>
-            <div className="text-[11px] text-zinc-500 mt-1">30 Days Unlimited Dispatching</div>
-          </div>
-
-          {/* Yearly Option */}
-          <div
-            onClick={() => setSelectedPlan('YEARLY')}
-            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              selectedPlan === 'YEARLY'
-                ? 'border-zinc-700 bg-zinc-50 dark:bg-zinc-900/60 shadow-sm'
-                : 'border-zinc-200 dark:border-zinc-700/60 hover:bg-zinc-50 dark:hover:bg-zinc-800'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                Yearly Pass (Best Value)
-              </span>
-              <span className="w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-bold border-zinc-500">
-                {selectedPlan === 'YEARLY' ? '' : ''}
-              </span>
-            </div>
-            <div className="text-2xl font-black text-zinc-900 dark:text-zinc-50">
-              {formatCurrency(yearlyRate)} <span className="text-xs font-normal text-zinc-500">/yr</span>
-            </div>
-            <div className="text-[11px] text-zinc-500 mt-1">365 Days Guaranteed Access</div>
-          </div>
-        </div>
-
-        {/* Benefits Note */}
-        <div className="p-3 bg-zinc-50 dark:bg-zinc-900/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs text-zinc-500 leading-relaxed">
-          100% of membership pass fees go into the Primary Cooperative Society Welfare Reserve for worker healthcare and emergency funds.
-        </div>
-
-        {/* Modal Actions */}
-        <div className="pt-2 flex items-center justify-end gap-2.5">
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn-secondary text-xs py-2 px-4 font-bold"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSubscribe}
-            className="btn-primary text-xs py-2.5 px-6 font-bold shadow-md flex items-center gap-2"
-            disabled={loading}
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Coins className="w-4 h-4" />}
-            <span>Pay {formatCurrency(activeCost)} & Activate Pass</span>
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -730,7 +772,7 @@ export default function WorkerDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [invoicingBooking, setInvoicingBooking] = useState<Booking | null>(null);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [showPayDuesModal, setShowPayDuesModal] = useState(false);
   const [reviewingCustomerBooking, setReviewingCustomerBooking] = useState<Booking | null>(null);
   const [selectedCustomerForIntel, setSelectedCustomerForIntel] = useState<{ customerId: string; customerName: string } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -1051,19 +1093,16 @@ export default function WorkerDashboardPage() {
                   : 'Account Paused (Unpaid Dues)'}
               </span>
 
-              {outstandingDues > 0 && !isSuspended && workerProfile?.kycStatus === 'VERIFIED' && (
-                <span className="text-[11px] font-bold text-amber-200 bg-amber-900/40 border border-amber-400/30 px-2 py-0.5 rounded-full">
-                  Outstanding Dues: {formatCurrency(outstandingDues)} / ₹300 limit
-                </span>
+              {outstandingDues > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowPayDuesModal(true)}
+                  className="text-xs font-bold px-3 py-1 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-lg shadow-sm flex items-center gap-1.5 transition-all active:scale-95"
+                >
+                  <Banknote className="w-3.5 h-3.5" />
+                  <span>Pay Dues ({formatCurrency(outstandingDues)})</span>
+                </button>
               )}
-
-              <button
-                type="button"
-                onClick={() => setShowSubscriptionModal(true)}
-                className="text-[11px] font-bold underline hover:text-white text-zinc-400 transition-colors"
-              >
-                Manage / Upgrade Membership Pass
-              </button>
             </div>
 
             <h2 className="text-2xl font-black text-white">{currentUser.name}</h2>
@@ -1141,6 +1180,35 @@ export default function WorkerDashboardPage() {
             <div className="text-[10px] text-zinc-400">Audited Fair Pricing Score</div>
           </div>
         </div>
+
+        {/* -- Outstanding Dues & PACS Commission Settlement Card -- */}
+        {outstandingDues > 0 && (
+          <div className={`card p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-l-4 ${isSuspended ? 'border-l-red-500 bg-red-50/30 dark:bg-red-950/20' : 'border-l-amber-500 bg-amber-50/30 dark:bg-amber-950/20'}`}>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Banknote className={`w-5 h-5 ${isSuspended ? 'text-red-600' : 'text-amber-600'}`} />
+                <h3 className="font-bold text-zinc-900 dark:text-zinc-50 text-sm sm:text-base">
+                  {isSuspended ? 'Account Paused: Outstanding Cash Platform Fees' : 'Outstanding Cash Commission Dues'}
+                </h3>
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${isSuspended ? 'bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300' : 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300'}`}>
+                  {isSuspended ? `Limit Exceeded (${formatCurrency(outstandingDues)})` : `${formatCurrency(outstandingDues)} / ₹300 limit`}
+                </span>
+              </div>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                The 5% platform fee collected in cash from customers on completed services is owed to the Primary Cooperative Society welfare pool.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowPayDuesModal(true)}
+              className="btn-primary text-xs py-2.5 px-5 font-bold shadow-md flex items-center gap-2 whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
+            >
+              <CheckCircle className="w-4 h-4" />
+              <span>Pay Outstanding Dues ({formatCurrency(outstandingDues)})</span>
+            </button>
+          </div>
+        )}
 
         {/* -- 1. Incoming Job Requests -- */}
         <section className="space-y-3">
@@ -1571,17 +1639,15 @@ export default function WorkerDashboardPage() {
         />
       )}
 
-      {/* -- Subscription Pass Modal -- */}
-      {showSubscriptionModal && workerProfile && (
-        <SubscriptionModal
+      {/* -- Pay Outstanding Dues Modal -- */}
+      {showPayDuesModal && workerProfile && (
+        <PayDuesModal
           worker={workerProfile}
-          monthlyRate={society?.monthlyPassRate || 69}
-          yearlyRate={society?.yearlyPassRate || 599}
-          onClose={() => setShowSubscriptionModal(false)}
-          onSubscribed={(updated) => {
-            setWorkerProfile(updated);
-            setShowSubscriptionModal(false);
-            showToast('Membership Pass activated successfully! You are now online with 0% commission.');
+          duesAmount={outstandingDues}
+          onClose={() => setShowPayDuesModal(false)}
+          onPaid={() => {
+            setShowPayDuesModal(false);
+            showToast('PACS Commission Dues settled successfully! Your account is now fully Active.');
             if (currentUser) refreshData(currentUser.id);
           }}
         />
